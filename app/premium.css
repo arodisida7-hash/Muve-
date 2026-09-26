@@ -1,0 +1,102 @@
+/* MUVETHERAPY — performance-clinical product direction */
+:root{
+  --ink:#0b2029;
+  --ink2:#15343e;
+  --mint:#39d9ad;
+  --mint-dark:#079b72;
+  --cyan:#3884ea;
+  --bg:#f2f5f4;
+  --panel:#ffffff;
+  --line:#dce5e3;
+  --muted:#667a80;
+  --soft:#edf3f1;
+}
+
+body{background:#f2f5f4;color:var(--ink);letter-spacing:-.006em}
+.shell{grid-template-columns:232px minmax(0,1fr)}
+.sidebar{background:#071e27;padding:22px 14px 16px;border-right:1px solid rgba(255,255,255,.04)}
+.wordmark{padding:0 8px 22px}
+.mark{width:35px;height:35px;border-radius:9px;box-shadow:none;background:#42dfb5;font-size:18px}
+.wordmark strong{font-size:17px}.wordmark span{font-size:9px}
+.workspace-name{border-radius:7px;background:#0c2833;border-color:#173945;padding:11px 12px}
+.sidebar nav{gap:2px}
+.sidebar nav button{height:42px;border-radius:7px;padding:0 11px}
+.sidebar nav button.active{background:#123640}
+.sidebar nav button.active i{right:0;height:24px;width:3px}
+.sidebar nav button span{font-size:13px;font-weight:540}
+.data-card{border-radius:8px;background:#0b2e35;border-color:#145044}
+.topbar{height:68px;padding:0 30px;background:rgba(250,252,251,.94);border-color:#dfe7e5}
+.global-search input{font-size:13px}
+.page{padding:28px 30px 42px;max-width:1510px;margin:0 auto}
+
+.head{margin-bottom:22px;align-items:flex-end}
+.head h1{font-size:32px;letter-spacing:-.045em;font-weight:680;margin:5px 0 4px}
+.head p{font-size:14px;line-height:1.5;color:#6d7f84}
+.eyebrow{font-size:10px;letter-spacing:.145em;font-weight:800;color:#6f858a}
+.patient-badge{border-radius:8px;box-shadow:none;border:1px solid #dce5e3;min-width:220px}
+.primary-btn,.ghost-btn,.quiet-btn{border-radius:7px;font-weight:700;font-size:12px}
+.primary-btn{background:#0b2c37;color:#fff;box-shadow:0 7px 18px rgba(8,35,45,.12)}
+.primary-btn:hover{background:#123f4a;transform:translateY(-1px)}
+.panel{border-radius:10px;border-color:#dce5e3;box-shadow:0 1px 0 rgba(9,31,39,.02)}
+.panel-title h2{font-size:18px;letter-spacing:-.025em;font-weight:670}
+
+/* Patient decision cockpit */
+.decision-hero{display:grid;grid-template-columns:minmax(0,1.55fr) 190px minmax(320px,.9fr);min-height:236px;background:linear-gradient(120deg,#081f29 0%,#0c2c36 66%,#103944 100%);border:1px solid #123c47;border-radius:12px;color:#fff;overflow:hidden;position:relative;margin-bottom:16px}
+.decision-hero:after{content:"";position:absolute;width:360px;height:360px;border:1px solid rgba(64,222,181,.11);border-radius:50%;right:-120px;top:-190px;box-shadow:0 0 0 55px rgba(64,222,181,.035),0 0 0 110px rgba(64,222,181,.025);pointer-events:none}
+.decision-copy{padding:30px 32px;position:relative;z-index:1}
+.decision-kicker{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;font-weight:800;color:#9db7bd}
+.decision-kicker i{width:7px;height:7px;border-radius:50%;background:#49dfb8;box-shadow:0 0 0 5px rgba(73,223,184,.12)}
+.decision-copy h2{font-size:27px;letter-spacing:-.04em;margin:17px 0 8px;font-weight:650}
+.decision-copy p{font-size:14px;line-height:1.6;color:#a9bec3;max-width:650px;margin:0 0 22px}
+.decision-copy .primary-btn{background:#43ddb5;color:#06262d;box-shadow:none}
+.decision-score{border-left:1px solid rgba(255,255,255,.08);border-right:1px solid rgba(255,255,255,.08);padding:30px 24px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1}
+.decision-score>span{font-size:9px;letter-spacing:.13em;color:#8faab0;font-weight:800}
+.decision-score>strong{font-size:55px;line-height:1;margin:14px 0 17px;letter-spacing:-.06em}
+.decision-score>strong small{font-size:20px;color:#7f999f;font-weight:500}
+.decision-score>div{height:5px;border-radius:9px;background:#264852;overflow:hidden}.decision-score>div i{display:block;height:100%;background:#43ddb5;border-radius:inherit}
+.decision-score p{font-size:11px;color:#f0bd66;margin:10px 0 0}
+.decision-metrics{padding:26px 28px;display:grid;gap:0;position:relative;z-index:1}
+.decision-metrics>div{display:grid;grid-template-columns:1fr auto;align-items:center;border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0}
+.decision-metrics>div:last-child{border:0}.decision-metrics span{font-size:12px;color:#9bb2b8}.decision-metrics strong{font-size:24px;grid-row:1/3;grid-column:2;letter-spacing:-.04em}.decision-metrics strong small{font-size:12px;color:#829da3}.decision-metrics em{font-size:10px;color:#45d6b1;font-style:normal;margin-top:3px}
+
+.clinical-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(290px,.72fr);gap:14px}
+.evolution-panel{padding:22px 22px 0}.premium-chart{height:260px;margin-top:12px}.chart-legend{display:flex;gap:16px;font-size:11px;color:#65787d}.chart-legend span{display:flex;align-items:center;gap:6px}.chart-legend i{width:8px;height:8px;border-radius:50%;display:block}.chart-legend .mobility{background:#13a77d}.chart-legend .capacity{background:#367de7}
+.chart-insight{min-height:50px;border-top:1px solid #e7eeec;display:flex;align-items:center;gap:9px;color:#51666b;font-size:12px;margin-top:8px}.chart-insight>svg{width:17px;color:#0a9f76}.chart-insight button{margin-left:auto;border:0;background:transparent;color:#0b8062;font-size:11px;font-weight:750;display:flex;align-items:center;gap:5px;cursor:pointer}.chart-insight button svg{width:14px}
+.profile-panel{padding:22px;min-height:350px}.radar-wrap{height:240px;margin:2px -10px 0}.quality-chip,.threshold{font-size:10px;color:#536b71;background:#edf3f1;border:1px solid #dfe8e6;padding:5px 8px;border-radius:5px}
+.profile-legend{display:flex;align-items:center;gap:14px;border-top:1px solid #e7eeec;padding-top:12px;font-size:10px;color:#667a80}.profile-legend span{display:flex;align-items:center;gap:6px}.profile-legend span i{width:8px;height:8px;border-radius:2px;background:#35d6aa}.profile-legend span:nth-child(2) i{background:#b7c2c4}.profile-legend strong{margin-left:auto;font-size:10px;color:#d18823}
+.asymmetry-panel{padding:22px}.asymmetry-chart{height:185px;margin-top:13px}.asymmetry-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #e7eeec;padding-top:13px;font-size:11px;color:#36715f}.asymmetry-foot span{display:flex;align-items:center;gap:6px}.asymmetry-foot svg{width:16px}.asymmetry-foot button{border:0;background:transparent;color:#0a8061;font-weight:750;font-size:11px}
+.premium-agenda{padding:22px}.premium-agenda .appointment{padding:12px 8px;border-radius:7px}.premium-agenda .appointment.active{background:#edf8f4}.premium-agenda .appointment strong{font-size:12px}.premium-agenda .appointment span{font-size:10px}
+.operations-strip{grid-column:1/-1;margin-top:14px;background:#fff;border:1px solid #dce5e3;border-radius:10px;display:grid;grid-template-columns:repeat(4,1fr)}
+.operations-strip>div{padding:17px 20px;border-right:1px solid #e4ebe9;display:grid;grid-template-columns:1fr auto;align-items:center}.operations-strip>div:last-child{border:0}.operations-strip span{font-size:11px;color:#64777c;display:flex;align-items:center;gap:7px}.operations-strip span svg{width:16px;color:#0aa078}.operations-strip strong{font-size:24px;grid-row:1/3;grid-column:2;letter-spacing:-.04em}.operations-strip small{font-size:10px;color:#87979b;margin:5px 0 0 23px}
+
+/* Mature all existing product surfaces */
+.stats{gap:10px}.stat{border-radius:8px;box-shadow:none}.stat strong{font-size:24px}.stat p{font-size:12px}.stat small{font-size:10px}
+.table-panel{overflow:hidden}.athlete-head{background:#edf2f1;border-radius:0;padding:11px 18px}.athlete-head span{font-size:10px}.athlete-row{padding:15px 18px}.athlete-row>span{font-size:13px}.athlete-cell strong{font-size:13px}.athlete-cell small{font-size:10px}
+.episode-grid{gap:14px}.episode-summary,.goal-card,.episode-timeline{padding:24px}.episode-summary>h3{font-size:20px;line-height:1.35}.episode-summary>p{font-size:14px;line-height:1.65}.evidence b{font-size:12px}.goal-card blockquote{font-size:21px;line-height:1.45}.timeline-track{margin-top:28px}.episode-event strong{font-size:13px}.episode-event p{font-size:11px}
+.evaluate-layout{grid-template-columns:245px minmax(490px,1fr) 250px;border-radius:10px;box-shadow:none}.battery-head span,.battery>button small{font-size:10px}.battery>button strong{font-size:12px}.battery>button{padding:14px 13px}.test-workspace{padding:26px}.test-header h2{font-size:24px}.test-header p{font-size:13px}.measurement,.asymmetry{border-radius:8px}.measurement>span,.asymmetry>span{font-size:10px}.measurement>small,.asymmetry>small{font-size:10px}.quality-row>div>span,.quality-row label>span,.notes>span{font-size:12px}.segmented button{font-size:11px}.notes textarea{font-size:13px}.reference-panel{padding:23px}.reference-panel h2{font-size:18px}.reference-note p{font-size:11px}
+.performance-grid{grid-template-columns:minmax(0,1.55fr) minmax(330px,.75fr);gap:14px}.chart-card{padding:22px}.chart{height:300px}.performance-profile{min-height:400px}.performance-profile .radar-wrap{height:285px}.metrics-row{gap:10px}.metric{border-radius:8px;padding:17px}.metric>span{font-size:10px}.metric h3{font-size:12px}.metric strong{font-size:24px}.metric small{font-size:10px}.data-origin{border-radius:8px;padding:18px 20px}.data-origin h3{font-size:14px}.data-origin p{font-size:12px}
+.treat-grid{gap:14px}.plan,.response{padding:24px}.exercise strong{font-size:13px}.exercise small{font-size:11px}.response h2{font-size:20px}.coach-note p{font-size:11px}
+.return-banner{border-radius:10px;padding:27px 30px}.return-banner h2{font-size:25px}.return-banner p{font-size:13px}.domain-grid{gap:10px}.domain{border-radius:8px;padding:17px}.domain-top>span{font-size:12px}.domain p{font-size:11px}.decision-bar{border-radius:8px;padding:15px 16px}.decision-bar strong{font-size:13px}.decision-bar small{font-size:11px}
+.report-controls{border-radius:8px}.audience-tabs button{font-size:12px}.included p{font-size:11px}.report-sheet{border-radius:2px;box-shadow:0 18px 55px rgba(19,43,50,.13)}
+.library-callout{border-radius:9px}.library-callout strong{font-size:15px}.library-callout p{font-size:12px}.library-card{border-radius:8px}.library-card h3{font-size:14px}.library-card p{font-size:10px}
+.modal{border-radius:11px}.modal-head h2{font-size:24px}.upload-zone{border-radius:8px}.upload-zone h3{font-size:16px}.upload-zone p{font-size:12px}
+
+@media(max-width:1200px){
+  .shell{grid-template-columns:215px minmax(0,1fr)}
+  .page{padding:24px}
+  .decision-hero{grid-template-columns:minmax(0,1fr) 170px}.decision-metrics{grid-column:1/-1;grid-template-columns:repeat(3,1fr);padding:0 26px 22px}.decision-metrics>div{border-bottom:0;border-right:1px solid rgba(255,255,255,.08);padding:12px 18px}.decision-metrics>div:first-child{padding-left:0}.decision-metrics>div:last-child{border:0}
+  .clinical-grid{grid-template-columns:minmax(0,1.35fr) 310px}
+  .evaluate-layout{grid-template-columns:220px 1fr}.reference-panel{grid-column:1/-1}
+}
+
+@media(max-width:850px){
+  .shell{display:block}.page{padding:20px 16px 34px}.topbar{height:62px;padding:0 16px}.head h1{font-size:28px}
+  .decision-hero{grid-template-columns:1fr}.decision-score{border:0;border-top:1px solid rgba(255,255,255,.08);padding:22px 28px}.decision-score>strong{font-size:44px;margin:10px 0}.decision-metrics{grid-column:auto;display:grid;grid-template-columns:1fr;padding:0 28px 22px}.decision-metrics>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.08);padding:12px 0}
+  .clinical-grid,.performance-grid{grid-template-columns:1fr}.profile-panel{min-height:330px}.premium-chart{height:240px}.operations-strip{grid-template-columns:repeat(2,1fr)}.operations-strip>div:nth-child(2){border-right:0}.operations-strip>div:nth-child(-n+2){border-bottom:1px solid #e4ebe9}
+}
+
+@media(max-width:560px){
+  .head-actions{gap:8px}.decision-copy{padding:25px 22px}.decision-copy h2{font-size:24px}.decision-copy p{font-size:13px}.decision-metrics{padding:0 22px 18px}
+  .evolution-panel,.profile-panel,.asymmetry-panel,.premium-agenda{padding:18px}.chart-legend{display:none}.premium-chart{height:220px}.radar-wrap{height:220px}.profile-legend strong{display:none}.operations-strip{grid-template-columns:1fr}.operations-strip>div{border-right:0;border-bottom:1px solid #e4ebe9!important}.operations-strip>div:last-child{border-bottom:0!important}.operations-strip strong{font-size:22px}
+  .evaluate-layout{grid-template-columns:1fr}.measurement-grid{grid-template-columns:1fr}.performance-profile{min-height:340px}.performance-profile .radar-wrap{height:230px}
+}

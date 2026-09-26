@@ -9,7 +9,7 @@ import {
   Target, TrendingUp, Upload, UserRound, UsersRound, X, Zap, Home as HomeIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, ComposedChart, RadarChart, Radar, PolarGrid, PolarAngleAxis, BarChart, Bar, Cell } from "recharts";
 
 type View = "hoy" | "atletas" | "episodio" | "evaluar" | "rendimiento" | "tratar" | "retorno" | "reportes" | "biblioteca";
 
@@ -29,6 +29,29 @@ const trend = [
   { date: "12 Jun", knee: 128, pain: 6 }, { date: "26 Jun", knee: 134, pain: 5 },
   { date: "10 Jul", knee: 139, pain: 4 }, { date: "24 Jul", knee: 143, pain: 3 },
   { date: "07 Ago", knee: 146, pain: 2 },
+];
+
+const performanceTrend = [
+  { date: "12 Jun", mobility: 61, capacity: 54, pain: 6 },
+  { date: "26 Jun", mobility: 69, capacity: 62, pain: 5 },
+  { date: "10 Jul", mobility: 78, capacity: 71, pain: 4 },
+  { date: "24 Jul", mobility: 86, capacity: 81, pain: 3 },
+  { date: "07 Ago", mobility: 94, capacity: 88, pain: 2 },
+];
+
+const profileData = [
+  { domain: "Movilidad", value: 94, baseline: 61 },
+  { domain: "Fuerza", value: 86, baseline: 58 },
+  { domain: "Potencia", value: 91, baseline: 65 },
+  { domain: "Control", value: 82, baseline: 56 },
+  { domain: "Tolerancia", value: 74, baseline: 42 },
+];
+
+const asymmetryData = [
+  { test: "CMJ", value: 7, fill: "#35d6aa" },
+  { test: "Single hop", value: 9, fill: "#55a7ff" },
+  { test: "Heel raise", value: 10, fill: "#f1b95b" },
+  { test: "Dorsiflexión", value: 4, fill: "#7d7cf7" },
 ];
 
 const battery = [
@@ -90,17 +113,24 @@ function PatientBadge() { return <div className="patient-badge"><div className="
 
 function Today({ go, imported }: { go: (v: View) => void; imported: boolean }) {
   return <>
-    <Head eyebrow="JUEVES · 25 DE SEPTIEMBRE" title="Buenas tardes, Nahum" text="Tu jornada clínica en una sola vista." actions={<><button className="quiet-btn"><CalendarDays /> Agenda</button><PatientBadge /></>} />
-    <section className="hero-grid">
-      <article className="case-hero">
-        <div className="case-top"><div><span className="pill mint">REEVALUACIÓN PRIORITARIA</span><h2>¿Mariana puede iniciar carrera continua?</h2><p>Dolor femoropatelar · Semana 8 · Episodio activo</p></div><div className="readiness"><strong>6</strong><span>de 8 dominios</span></div></div>
-        <div className="clinical-path"><PathStep done label="Síntomas" value="2/10"/><PathStep done label="Movilidad" value="146°"/><PathStep done label="Capacidad" value="93%"/><PathStep label="Exposición" value="Pendiente"/><PathStep label="Confianza" value="7/10"/></div>
-        <div className="case-bottom"><div><AlertTriangle /><span><strong>Brecha principal</strong> Falta documentar tolerancia a carrera de 20 minutos y respuesta a 24 h.</span></div><button className="primary-btn" onClick={() => go("retorno")}>Revisar retorno <ArrowRight /></button></div>
-      </article>
-      <article className="panel agenda"><div className="panel-title"><div><span className="eyebrow">AGENDA</span><h2>Próximas sesiones</h2></div><button>Ver día</button></div><Appointment time="16:30" initials="ML" name="Mariana López" type="Reevaluación" active/><Appointment time="18:00" initials="DR" name="Diego Ramírez" type="Movilidad de tobillo"/><Appointment time="19:15" initials="LT" name="Lucía Torres" type="Retorno a entrenamiento"/></article>
+    <Head eyebrow="CENTRO CLÍNICO · 25 SEPTIEMBRE" title="Mariana López" text="Running · 29 años · Dolor femoropatelar · Semana 8" actions={<><button className="quiet-btn"><CalendarDays /> Reevaluación 16:30</button><PatientBadge /></>} />
+    <section className="decision-hero">
+      <div className="decision-copy"><span className="decision-kicker"><i /> DECISIÓN ABIERTA</span><h2>¿Puede iniciar carrera continua?</h2><p>La evolución clínica es favorable. Falta confirmar exposición de 20 minutos y respuesta a las 24 horas antes de progresar.</p><button className="primary-btn" onClick={() => go("retorno")}>Abrir decisión clínica <ArrowRight /></button></div>
+      <div className="decision-score"><span>DOMINIOS CUMPLIDOS</span><strong>6<small>/8</small></strong><div><i style={{width:"75%"}} /></div><p>2 brechas activas</p></div>
+      <div className="decision-metrics"><div><span>Dolor actual</span><strong>2<small>/10</small></strong><em>−4 desde ingreso</em></div><div><span>Simetría</span><strong>93<small>%</small></strong><em>+15 puntos</em></div><div><span>Confianza</span><strong>7<small>/10</small></strong><em>En progreso</em></div></div>
     </section>
-    <section className="stats"><Stat icon={UsersRound} value="48" label="Atletas activos" note="6 episodios nuevos"/><Stat icon={ClipboardCheck} value="9" label="Reevaluaciones" note="3 pendientes esta semana"/><Stat icon={TrendingUp} value="87%" label="Metas en progreso" note="+8% este mes"/><Stat icon={Import} value={imported ? "187" : "0"} label="Datos conciliados" note={imported ? "MyJump01 · hoy" : "Listos para importar"}/></section>
-    <section className="split"><article className="panel activity-panel"><div className="panel-title"><div><span className="eyebrow">SEGUIMIENTO</span><h2>Actividad clínica</h2></div><span className="soft-pill">Últimos 7 días</span></div><div className="timeline-row"><span className="event-icon"><ClipboardCheck /></span><div><strong>Evaluación completada</strong><p>Diego · Weight-bearing lunge bilateral</p></div><time>Hoy · 12:40</time></div><div className="timeline-row"><span className="event-icon"><TrendingUp /></span><div><strong>Objetivo alcanzado</strong><p>Lucía · Simetría de salto superior a 90%</p></div><time>Ayer · 18:10</time></div><div className="timeline-row"><span className="event-icon"><FileText /></span><div><strong>Informe compartido</strong><p>Mariana · Resumen para atleta</p></div><time>23 sep</time></div></article><article className="panel attention"><span className="eyebrow">REQUIEREN ATENCIÓN</span><h2>Decisiones pendientes</h2><Decision color="amber" title="Respuesta adversa" text="Diego registró dolor 5/10 a las 24 horas."/><Decision color="cyan" title="Protocolo incompleto" text="Mariana tiene una prueba pendiente en su batería."/><Decision color="violet" title="Revisión de importación" text="2 alias de MyROM requieren conciliación."/></article></section>
+
+    <section className="clinical-grid">
+      <article className="panel evolution-panel"><div className="panel-title"><div><span className="eyebrow">EVOLUCIÓN LONGITUDINAL</span><h2>Movilidad y capacidad</h2></div><div className="chart-legend"><span><i className="mobility"/>Movilidad</span><span><i className="capacity"/>Capacidad</span></div></div><div className="chart premium-chart"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={performanceTrend} margin={{top:8,right:10,left:-18,bottom:0}}><defs><linearGradient id="clinicalFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#38d9ad" stopOpacity=".28"/><stop offset="1" stopColor="#38d9ad" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#e7eeed" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8c91"}}/><YAxis domain={[40,100]} axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8c91"}}/><Tooltip contentStyle={{border:"1px solid #dce6e4",borderRadius:8,boxShadow:"0 10px 30px rgba(13,35,43,.12)"}}/><Area dataKey="mobility" type="monotone" stroke="#13a77d" strokeWidth={3} fill="url(#clinicalFill)"/><Line dataKey="capacity" type="monotone" stroke="#367de7" strokeWidth={3} dot={{r:3,fill:"#367de7",strokeWidth:0}}/></ComposedChart></ResponsiveContainer></div><div className="chart-insight"><TrendingUp/><span><strong>Mejor cambio:</strong> +33 puntos de movilidad desde el ingreso.</span><button onClick={()=>go("rendimiento")}>Ver análisis <ArrowRight/></button></div></article>
+
+      <article className="panel profile-panel"><div className="panel-title"><div><span className="eyebrow">PERFIL DE CAPACIDAD</span><h2>Actual vs. línea base</h2></div><span className="quality-chip">5 dominios</span></div><div className="radar-wrap"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profileData} outerRadius="72%"><PolarGrid stroke="#dbe6e4"/><PolarAngleAxis dataKey="domain" tick={{fontSize:10,fill:"#667a80"}}/><Radar dataKey="baseline" stroke="#a9b8bb" fill="#a9b8bb" fillOpacity={.1}/><Radar dataKey="value" stroke="#12a77d" strokeWidth={2} fill="#36d8ad" fillOpacity={.28}/></RadarChart></ResponsiveContainer></div><div className="profile-legend"><span><i/>Actual</span><span><i/>Ingreso</span><strong>Mayor brecha: tolerancia</strong></div></article>
+
+      <article className="panel asymmetry-panel"><div className="panel-title"><div><span className="eyebrow">ASIMETRÍA</span><h2>Diferencia entre lados</h2></div><span className="threshold">Umbral ≤ 10%</span></div><div className="asymmetry-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={asymmetryData} layout="vertical" margin={{top:0,right:28,left:4,bottom:0}}><XAxis type="number" domain={[0,15]} hide/><YAxis type="category" dataKey="test" axisLine={false} tickLine={false} width={90} tick={{fontSize:11,fill:"#42585e"}}/><Tooltip cursor={{fill:"#f4f7f6"}}/><Bar dataKey="value" radius={[0,5,5,0]} barSize={10}>{asymmetryData.map((x)=><Cell key={x.test} fill={x.fill}/>)}</Bar></BarChart></ResponsiveContainer></div><div className="asymmetry-foot"><span><ShieldCheck/>Todas dentro de criterio</span><button onClick={()=>go("rendimiento")}>Detalle</button></div></article>
+
+      <article className="panel agenda premium-agenda"><div className="panel-title"><div><span className="eyebrow">AGENDA CLÍNICA</span><h2>Próximas sesiones</h2></div><button>Ver agenda</button></div><Appointment time="16:30" initials="ML" name="Mariana López" type="Reevaluación" active/><Appointment time="18:00" initials="DR" name="Diego Ramírez" type="Tobillo · Sesión 4"/><Appointment time="19:15" initials="LT" name="Lucía Torres" type="Retorno al deporte"/></article>
+    </section>
+
+    <section className="operations-strip"><div><span><UsersRound/>Atletas activos</span><strong>48</strong><small>6 episodios nuevos</small></div><div><span><ClipboardCheck/>Reevaluaciones</span><strong>9</strong><small>3 esta semana</small></div><div><span><TrendingUp/>Metas en progreso</span><strong>87%</strong><small>+8% este mes</small></div><div><span><Import/>Datos conciliados</span><strong>{imported ? "187" : "0"}</strong><small>{imported ? "MyJump01 · hoy" : "Listos para importar"}</small></div></section>
   </>;
 }
 
@@ -134,7 +164,7 @@ function Measurement({side,value,setValue,accent}:{side:string;value:number;setV
 
 function Performance({ imported, openImport }: { imported:boolean; openImport:()=>void }) {
   return <><Head eyebrow="PERFIL FÍSICO" title="Capacidad y rendimiento" text="Síntomas, pruebas clínicas y datos externos en una misma tendencia." actions={<><button className="ghost-btn" onClick={openImport}><Upload /> Importar CSV</button><PatientBadge /></>} />
-    <div className="performance-grid"><article className="panel chart-card"><div className="panel-title"><div><span className="eyebrow">MOVILIDAD</span><h2>Flexión de rodilla</h2></div><span className="gain"><TrendingUp /> +18°</span></div><div className="chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={trend}><defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#18b98a" stopOpacity=".32"/><stop offset="1" stopColor="#18b98a" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#e8eeeb" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false}/><YAxis domain={[120,155]} axisLine={false} tickLine={false}/><Tooltip/><Area dataKey="knee" type="monotone" stroke="#0d9c75" strokeWidth={3} fill="url(#a)"/></AreaChart></ResponsiveContainer></div></article><article className="panel capability"><span className="eyebrow">PERFIL ACTUAL</span><h2>Capacidades clave</h2><Capability label="Movilidad" value={94}/><Capability label="Fuerza" value={86}/><Capability label="Potencia" value={91}/><Capability label="Control" value={82}/><Capability label="Tolerancia" value={74}/></article></div>
+    <div className="performance-grid"><article className="panel chart-card"><div className="panel-title"><div><span className="eyebrow">MOVILIDAD · 5 SESIONES</span><h2>Flexión de rodilla</h2></div><span className="gain"><TrendingUp /> +18°</span></div><div className="chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={trend} margin={{top:10,right:18,left:-16,bottom:0}}><defs><linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#22c89a" stopOpacity=".3"/><stop offset="1" stopColor="#22c89a" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#e5ecea" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#75878c"}}/><YAxis domain={[120,155]} axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#75878c"}}/><Tooltip/><Area dataKey="knee" type="monotone" stroke="#0a9f76" strokeWidth={3} fill="url(#a)" dot={{r:4,fill:"#fff",stroke:"#0a9f76",strokeWidth:2}}/></AreaChart></ResponsiveContainer></div><div className="chart-insight"><ShieldCheck/><span>Protocolo y condiciones comparables en las 5 sesiones.</span></div></article><article className="panel profile-panel performance-profile"><div className="panel-title"><div><span className="eyebrow">PERFIL ACTUAL</span><h2>Capacidades clave</h2></div><span className="quality-chip">Semana 8</span></div><div className="radar-wrap"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profileData} outerRadius="72%"><PolarGrid stroke="#dbe6e4"/><PolarAngleAxis dataKey="domain" tick={{fontSize:10,fill:"#667a80"}}/><Radar dataKey="baseline" stroke="#a9b8bb" fill="#a9b8bb" fillOpacity={.1}/><Radar dataKey="value" stroke="#12a77d" strokeWidth={2} fill="#36d8ad" fillOpacity={.3}/></RadarChart></ResponsiveContainer></div><div className="profile-legend"><span><i/>Actual</span><span><i/>Ingreso</span></div></article></div>
     <div className="metrics-row"><Metric source="MyROM" label="Dorsiflexión" value="38°" delta="+6°"/><Metric source="MyJump01" label="CMJ" value={imported?"31.8 cm":"—"} delta={imported?"+3.2 cm":"Importar"}/><Metric source="Clínica" label="Heel raise" value="26 rep" delta="90% sim."/><Metric source="MyMocap" label="Valgo dinámico" value={imported?"7.4°":"—"} delta={imported?"−4.1°":"Importar"}/></div>
     <article className="panel data-origin"><div><span className="source-icon"><Layers3 /></span><div><h3>Trazabilidad en cada resultado</h3><p>Conservamos valor original, unidad, protocolo, equipo, versión y calidad. La normalización nunca reemplaza el dato de origen.</p></div></div><button className="quiet-btn" onClick={openImport}>Ver conciliación <ArrowRight /></button></article>
   </>;
