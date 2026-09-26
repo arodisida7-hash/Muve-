@@ -9,7 +9,7 @@ import {
   Target, TrendingUp, Upload, UserRound, UsersRound, X, Zap, Home as HomeIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, ComposedChart, RadarChart, Radar, PolarGrid, PolarAngleAxis, BarChart, Bar, Cell } from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, ComposedChart, RadarChart, Radar, PolarGrid, PolarAngleAxis, BarChart, Bar, Cell, ReferenceLine } from "recharts";
 
 type View = "hoy" | "atletas" | "episodio" | "evaluar" | "rendimiento" | "tratar" | "retorno" | "reportes" | "biblioteca";
 
@@ -54,6 +54,23 @@ const asymmetryData = [
   { test: "Dorsiflexión", value: 4, fill: "#7d7cf7" },
 ];
 
+const jumpTrend = [
+  { date: "12 Jun", right: 24.8, left: 21.9 },
+  { date: "26 Jun", right: 26.1, left: 23.8 },
+  { date: "10 Jul", right: 27.6, left: 25.4 },
+  { date: "24 Jul", right: 29.8, left: 27.9 },
+  { date: "07 Ago", right: 31.8, left: 29.6 },
+];
+
+const metricSeries = {
+  mobility: [{v:128},{v:134},{v:139},{v:143},{v:146}],
+  cmj: [{v:24.8},{v:26.1},{v:27.6},{v:29.8},{v:31.8}],
+  symmetry: [{v:78},{v:82},{v:87},{v:90},{v:93}],
+  ankle: [{v:32},{v:33},{v:35},{v:36},{v:38}],
+  pain: [{v:6},{v:5},{v:4},{v:3},{v:2}],
+  exposure: [{v:0},{v:4},{v:8},{v:12},{v:16}],
+};
+
 const battery = [
   { name: "Dolor y función", meta: "NPRS · PSFS", status: "done" },
   { name: "Movilidad de tobillo", meta: "Weight-bearing lunge", status: "done" },
@@ -79,7 +96,7 @@ export default function Home() {
       <aside className={`sidebar ${mobile ? "open" : ""}`}>
         <div className="wordmark"><div className="mark">M</div><div><strong>MUVE</strong><span>THERAPY</span></div><button className="mobile-close" onClick={() => setMobile(false)} aria-label="Cerrar menú"><X /></button></div>
         <div className="workspace-name"><span>ESPACIO CLÍNICO</span><strong>Clínica principal</strong><ChevronDown /></div>
-        <nav>{nav.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? "active" : ""} onClick={() => go(id)}><Icon /><span>{label}</span>{view === id && <i />}</button>)}</nav>
+        <nav>{nav.map(({ id, label, icon: Icon }) => <button key={id} aria-label={label} title={label} className={view === id ? "active" : ""} onClick={() => go(id)}><Icon /><span>{label}</span>{view === id && <i />}</button>)}</nav>
         <div className="data-card"><ShieldCheck /><div><strong>Entorno de demostración</strong><span>Los pacientes y resultados son ficticios.</span></div></div>
         <div className="user-card"><div className="avatar">NH</div><div><strong>Nahum H.</strong><span>Fisioterapeuta</span></div><MoreHorizontal /></div>
       </aside>
@@ -113,25 +130,40 @@ function PatientBadge() { return <div className="patient-badge"><div className="
 
 function Today({ go, imported }: { go: (v: View) => void; imported: boolean }) {
   return <>
-    <Head eyebrow="CENTRO CLÍNICO · 25 SEPTIEMBRE" title="Mariana López" text="Running · 29 años · Dolor femoropatelar · Semana 8" actions={<><button className="quiet-btn"><CalendarDays /> Reevaluación 16:30</button><PatientBadge /></>} />
-    <section className="decision-hero">
-      <div className="decision-copy"><span className="decision-kicker"><i /> DECISIÓN ABIERTA</span><h2>¿Puede iniciar carrera continua?</h2><p>La evolución clínica es favorable. Falta confirmar exposición de 20 minutos y respuesta a las 24 horas antes de progresar.</p><button className="primary-btn" onClick={() => go("retorno")}>Abrir decisión clínica <ArrowRight /></button></div>
-      <div className="decision-score"><span>DOMINIOS CUMPLIDOS</span><strong>6<small>/8</small></strong><div><i style={{width:"75%"}} /></div><p>2 brechas activas</p></div>
-      <div className="decision-metrics"><div><span>Dolor actual</span><strong>2<small>/10</small></strong><em>−4 desde ingreso</em></div><div><span>Simetría</span><strong>93<small>%</small></strong><em>+15 puntos</em></div><div><span>Confianza</span><strong>7<small>/10</small></strong><em>En progreso</em></div></div>
+    <section className="athlete-command">
+      <div className="athlete-identity"><div className="athlete-avatar">ML</div><div><span className="context-path">ATLETAS / MUVE-0024</span><h1>Mariana López</h1><p>Running · 29 años · Rodilla derecha</p></div></div>
+      <div className="episode-state"><span><i/>EPISODIO ACTIVO</span><strong>Dolor femoropatelar</strong><small>Semana 8 de rehabilitación</small></div>
+      <div className="command-actions"><button className="quiet-btn"><CalendarDays/>Hoy · 16:30</button><button className="primary-btn" onClick={()=>go("evaluar")}><Plus/>Registrar prueba</button></div>
+    </section>
+    <nav className="athlete-tabs"><button className="active">Resumen</button><button onClick={()=>go("episodio")}>Historia clínica</button><button onClick={()=>go("evaluar")}>Evaluaciones</button><button onClick={()=>go("rendimiento")}>Rendimiento</button><button onClick={()=>go("tratar")}>Plan terapéutico</button><button onClick={()=>go("retorno")}>Retorno</button></nav>
+
+    <section className="metric-wall">
+      <MetricTile label="Flexión de rodilla" value="146°" delta="+18°" source="CLÍNICA" color="#2f6fed" data={metricSeries.mobility}/>
+      <MetricTile label="Salto CMJ" value={imported?"31.8 cm":"31.8 cm"} delta="+28%" source="MYJUMP01" color="#13a982" data={metricSeries.cmj}/>
+      <MetricTile label="Simetría funcional" value="93%" delta="+15 pts" source="PERFIL" color="#7b61e8" data={metricSeries.symmetry}/>
+      <MetricTile label="Dorsiflexión" value="38°" delta="+6°" source="MYROM" color="#27a6d8" data={metricSeries.ankle}/>
+      <MetricTile label="Dolor" value="2/10" delta="−4 pts" source="NPRS" color="#ee8b3a" data={metricSeries.pain} inverse/>
+      <MetricTile label="Exposición carrera" value="16 min" delta="Meta 20" source="CARGA" color="#dd4e77" data={metricSeries.exposure}/>
     </section>
 
-    <section className="clinical-grid">
-      <article className="panel evolution-panel"><div className="panel-title"><div><span className="eyebrow">EVOLUCIÓN LONGITUDINAL</span><h2>Movilidad y capacidad</h2></div><div className="chart-legend"><span><i className="mobility"/>Movilidad</span><span><i className="capacity"/>Capacidad</span></div></div><div className="chart premium-chart"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={performanceTrend} margin={{top:8,right:10,left:-18,bottom:0}}><defs><linearGradient id="clinicalFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#38d9ad" stopOpacity=".28"/><stop offset="1" stopColor="#38d9ad" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#e7eeed" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8c91"}}/><YAxis domain={[40,100]} axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8c91"}}/><Tooltip contentStyle={{border:"1px solid #dce6e4",borderRadius:8,boxShadow:"0 10px 30px rgba(13,35,43,.12)"}}/><Area dataKey="mobility" type="monotone" stroke="#13a77d" strokeWidth={3} fill="url(#clinicalFill)"/><Line dataKey="capacity" type="monotone" stroke="#367de7" strokeWidth={3} dot={{r:3,fill:"#367de7",strokeWidth:0}}/></ComposedChart></ResponsiveContainer></div><div className="chart-insight"><TrendingUp/><span><strong>Mejor cambio:</strong> +33 puntos de movilidad desde el ingreso.</span><button onClick={()=>go("rendimiento")}>Ver análisis <ArrowRight/></button></div></article>
+    <section className="hub-grid">
+      <article className="hub-widget test-trend"><div className="widget-head"><div><span>RENDIMIENTO / SALTO</span><h2>CMJ — evolución bilateral</h2><p>Altura de salto · manos en cadera · 240 fps</p></div><div className="widget-actions"><button className="active">8 semanas</button><button>6 meses</button><MoreHorizontal/></div></div><div className="force-chart"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={jumpTrend} margin={{top:16,right:12,left:-10,bottom:0}}><CartesianGrid vertical={false} stroke="#e8edf1"/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8790"}}/><YAxis domain={[18,34]} axisLine={false} tickLine={false} tick={{fontSize:11,fill:"#7b8790"}}/><Tooltip contentStyle={{border:"1px solid #dfe5e8",borderRadius:6,boxShadow:"0 12px 32px rgba(25,39,52,.12)"}}/><ReferenceLine y={30} stroke="#9aa8b0" strokeDasharray="4 4"/><Line dataKey="right" name="Derecha" type="monotone" stroke="#2f6fed" strokeWidth={2.5} dot={{r:4,fill:"#fff",strokeWidth:2}}/><Line dataKey="left" name="Izquierda" type="monotone" stroke="#14a982" strokeWidth={2.5} dot={{r:4,fill:"#fff",strokeWidth:2}}/></ComposedChart></ResponsiveContainer></div><div className="test-summary"><span><i className="right-leg"/>Derecha <strong>31.8 cm</strong></span><span><i className="left-leg"/>Izquierda <strong>29.6 cm</strong></span><span className="criterion"><ShieldCheck/>Asimetría 6.9% · dentro de criterio</span></div></article>
 
-      <article className="panel profile-panel"><div className="panel-title"><div><span className="eyebrow">PERFIL DE CAPACIDAD</span><h2>Actual vs. línea base</h2></div><span className="quality-chip">5 dominios</span></div><div className="radar-wrap"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profileData} outerRadius="72%"><PolarGrid stroke="#dbe6e4"/><PolarAngleAxis dataKey="domain" tick={{fontSize:10,fill:"#667a80"}}/><Radar dataKey="baseline" stroke="#a9b8bb" fill="#a9b8bb" fillOpacity={.1}/><Radar dataKey="value" stroke="#12a77d" strokeWidth={2} fill="#36d8ad" fillOpacity={.28}/></RadarChart></ResponsiveContainer></div><div className="profile-legend"><span><i/>Actual</span><span><i/>Ingreso</span><strong>Mayor brecha: tolerancia</strong></div></article>
+      <aside className="hub-widget decision-widget"><div className="widget-head"><div><span>RETORNO A CARRERA</span><h2>Decisión clínica</h2></div><span className="status-open">ABIERTA</span></div><div className="readiness-dial"><strong>6<small>/8</small></strong><span>dominios cumplidos</span></div><div className="decision-list"><div className="done"><Check/><span>Clínica y síntomas</span><strong>100</strong></div><div className="done"><Check/><span>Capacidad</span><strong>92</strong></div><div className="progressing"><Clock3/><span>Exposición</span><strong>68</strong></div><div className="progressing"><Clock3/><span>Respuesta 24 h</span><strong>—</strong></div></div><div className="decision-alert"><AlertTriangle/><span><strong>Brecha crítica</strong>Completar carrera continua de 20 minutos.</span></div><button className="primary-btn" onClick={()=>go("retorno")}>Revisar criterios <ArrowRight/></button></aside>
 
-      <article className="panel asymmetry-panel"><div className="panel-title"><div><span className="eyebrow">ASIMETRÍA</span><h2>Diferencia entre lados</h2></div><span className="threshold">Umbral ≤ 10%</span></div><div className="asymmetry-chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={asymmetryData} layout="vertical" margin={{top:0,right:28,left:4,bottom:0}}><XAxis type="number" domain={[0,15]} hide/><YAxis type="category" dataKey="test" axisLine={false} tickLine={false} width={90} tick={{fontSize:11,fill:"#42585e"}}/><Tooltip cursor={{fill:"#f4f7f6"}}/><Bar dataKey="value" radius={[0,5,5,0]} barSize={10}>{asymmetryData.map((x)=><Cell key={x.test} fill={x.fill}/>)}</Bar></BarChart></ResponsiveContainer></div><div className="asymmetry-foot"><span><ShieldCheck/>Todas dentro de criterio</span><button onClick={()=>go("rendimiento")}>Detalle</button></div></article>
+      <article className="hub-widget monitoring-widget"><div className="widget-head"><div><span>MONITOREO</span><h2>Respuesta de los últimos 7 días</h2></div><button className="text-action">Ver historial</button></div><div className="monitor-table"><div className="monitor-head"><span>Indicador</span>{["L","M","X","J","V","S","D"].map(x=><b key={x}>{x}</b>)}<span>Actual</span></div><MonitorRow label="Dolor" values={[3,2,2,3,2,2,2]} current="2/10" good/><MonitorRow label="Fatiga" values={[4,5,3,6,4,3,4]} current="4/10"/><MonitorRow label="Sueño" values={[8,7,8,6,8,9,8]} current="8/10" good/><MonitorRow label="Confianza" values={[6,6,7,7,7,7,7]} current="7/10" good/></div></article>
 
-      <article className="panel agenda premium-agenda"><div className="panel-title"><div><span className="eyebrow">AGENDA CLÍNICA</span><h2>Próximas sesiones</h2></div><button>Ver agenda</button></div><Appointment time="16:30" initials="ML" name="Mariana López" type="Reevaluación" active/><Appointment time="18:00" initials="DR" name="Diego Ramírez" type="Tobillo · Sesión 4"/><Appointment time="19:15" initials="LT" name="Lucía Torres" type="Retorno al deporte"/></article>
+      <article className="hub-widget profile-compact"><div className="widget-head"><div><span>PERFIL DE CAPACIDAD</span><h2>Actual vs. ingreso</h2></div><button className="text-action" onClick={()=>go("rendimiento")}>Abrir perfil</button></div><div className="compact-radar"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profileData} outerRadius="70%"><PolarGrid stroke="#dce4e8"/><PolarAngleAxis dataKey="domain" tick={{fontSize:10,fill:"#687880"}}/><Radar dataKey="baseline" stroke="#b4bec3" fill="#b4bec3" fillOpacity={.08}/><Radar dataKey="value" stroke="#2f6fed" strokeWidth={2} fill="#2f6fed" fillOpacity={.18}/></RadarChart></ResponsiveContainer></div></article>
     </section>
-
-    <section className="operations-strip"><div><span><UsersRound/>Atletas activos</span><strong>48</strong><small>6 episodios nuevos</small></div><div><span><ClipboardCheck/>Reevaluaciones</span><strong>9</strong><small>3 esta semana</small></div><div><span><TrendingUp/>Metas en progreso</span><strong>87%</strong><small>+8% este mes</small></div><div><span><Import/>Datos conciliados</span><strong>{imported ? "187" : "0"}</strong><small>{imported ? "MyJump01 · hoy" : "Listos para importar"}</small></div></section>
   </>;
+}
+
+function MetricTile({label,value,delta,source,color,data,inverse}:{label:string;value:string;delta:string;source:string;color:string;data:{v:number}[];inverse?:boolean}){
+  return <article className="metric-tile" style={{"--metric":color} as React.CSSProperties}><div className="metric-meta"><span>{source}</span><MoreHorizontal/></div><h3>{label}</h3><div className="metric-value"><strong>{value}</strong><em className={inverse?"inverse":""}>{delta}</em></div><div className="spark"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data}><defs><linearGradient id={`g-${label.replaceAll(" ","")}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".22"/><stop offset="1" stopColor={color} stopOpacity="0"/></linearGradient></defs><Area dataKey="v" type="monotone" stroke={color} strokeWidth={2} fill={`url(#g-${label.replaceAll(" ","")})`} dot={false}/></AreaChart></ResponsiveContainer></div></article>;
+}
+
+function MonitorRow({label,values,current,good}:{label:string;values:number[];current:string;good?:boolean}){
+  return <div className="monitor-row"><strong>{label}</strong>{values.map((v,i)=><span key={i} className={v<=3?"low":v>=8?"high":v>=6?"mid":"neutral"}>{v}</span>)}<em className={good?"good":""}>{current}</em></div>;
 }
 
 function PathStep({ done, label, value }: { done?: boolean; label: string; value: string }) { return <div className={done ? "path-step done" : "path-step"}><span>{done ? <Check /> : ""}</span><div><small>{label}</small><strong>{value}</strong></div></div>; }

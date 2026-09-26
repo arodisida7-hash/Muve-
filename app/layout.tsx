@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./premium.css";
+import "./studio.css";
 
 export const metadata: Metadata = {
   title: "MUVETHERAPY | Clínica y rendimiento",
