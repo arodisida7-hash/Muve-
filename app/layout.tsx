@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import "./globals.css";
-import "./premium.css";
-import "./studio.css";
+import "@fontsource-variable/manrope";
+import "@fontsource/ibm-plex-mono";
+import "./lab.css";
 
 export const metadata: Metadata = {
-  title: "MUVETHERAPY | Clínica y rendimiento",
+  title: "MUVETHERAPY | Performance OS",
   description: "Plataforma clínica y de rendimiento para fisioterapia deportiva.",
   icons: { icon: "/Muve-/favicon.svg", shortcut: "/Muve-/favicon.svg" },
 };
