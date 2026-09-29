@@ -36,6 +36,7 @@ const profile = [{k:"MOV",now:94,base:61},{k:"FZA",now:86,base:58},{k:"POT",now:
 const asymmetry = [{name:"CMJ",value:6.9,color:"#78f0c3"},{name:"Single hop",value:8.6,color:"#70a5ff"},{name:"Heel raise",value:9.8,color:"#f4bd62"},{name:"Dorsiflexión",value:4.2,color:"#b494ff"}];
 
 export default function Home(){
+  const [welcome,setWelcome]=useState(true);
   const [page,setPage]=useState<Page>("today");
   const [athletes,setAthletes]=useState(seedAthletes);
   const [selected,setSelected]=useState<Athlete|null>(null);
@@ -47,6 +48,8 @@ export default function Home(){
   const results=useMemo(()=>query.trim()?athletes.filter(a=>`${a.name} ${a.id} ${a.sport}`.toLowerCase().includes(query.toLowerCase())).slice(0,5):[],[query,athletes]);
   const openAthlete=(a:Athlete,target:Page="workspace")=>{setSelected(a);setPage(target);setQuery("");setMobile(false)};
   const go=(p:Page)=>{setPage(p);setMobile(false)};
+
+  if(welcome)return <DemoWelcome athlete={athletes[0]} startCase={()=>{openAthlete(athletes[0],"workspace");setWelcome(false)}} enter={()=>{setPage("today");setWelcome(false)}}/>;
 
   return <main className="muve-app">
     <aside className={`muve-rail ${mobile?"open":""}`}>
@@ -85,6 +88,24 @@ export default function Home(){
     </section>
     {newOpen&&<NewAthleteModal close={()=>setNewOpen(false)} save={(name,sport)=>{const parts=name.trim().split(/\s+/);const initials=(parts[0]?.[0]||"A")+(parts[1]?.[0]||"");const a:Athlete={id:`MUVE-${String(athletes.length+41).padStart(4,"0")}`,initials:initials.toUpperCase(),name,sport,age:0,episode:"Sin episodio activo",region:"Por definir",status:"Nuevo ingreso",next:"Sin cita",progress:0};setAthletes(v=>[a,...v]);setNewOpen(false);openAthlete(a);flash("Atleta agregado al demo")}}/>}
     {toast&&<div className="muve-toast"><Check/>{toast}</div>}
+  </main>
+}
+
+function DemoWelcome({athlete,startCase,enter}:{athlete:Athlete;startCase:()=>void;enter:()=>void}){
+  const journey=[
+    {n:"01",label:"Conocer el caso",detail:"Historia, lesión y objetivo"},
+    {n:"02",label:"Evaluar",detail:"Movimiento y capacidad"},
+    {n:"03",label:"Intervenir",detail:"Plan y respuesta a carga"},
+    {n:"04",label:"Decidir",detail:"Progreso y retorno"},
+    {n:"05",label:"Comunicar",detail:"Reporte profesional"},
+  ];
+  return <main className="demo-welcome">
+    <header><div className="welcome-brand"><b>M</b><span><strong>MUVE</strong><small>THERAPY · CLINICAL PERFORMANCE</small></span></div><span className="demo-badge">DEMO DE PRODUCTO · DATOS SIMULADOS</span></header>
+    <section className="welcome-stage">
+      <div className="welcome-copy"><span>PLATAFORMA CLÍNICA Y DE RENDIMIENTO</span><h1>Del primer hallazgo a una decisión con evidencia.</h1><p>MUVE organiza la historia, la evaluación, el tratamiento y el retorno al deporte dentro de un mismo episodio por atleta.</p><div className="welcome-actions"><button className="primary-action welcome-primary" onClick={startCase}>Explorar caso clínico <ArrowRight/></button><button className="welcome-secondary" onClick={enter}>Entrar al centro de operaciones</button></div><small>La demostración comienza con un caso preparado para recorrer el producto sin configuración previa.</small></div>
+      <article className="welcome-case"><div className="case-tag"><span>CASO GUIADO</span><em>5–7 min</em></div><div className="case-person"><span>{athlete.initials}</span><div><small>{athlete.id} · {athlete.sport}</small><h2>{athlete.name}</h2><p>{athlete.age} años · {athlete.region}</p></div></div><div className="case-question"><small>PREGUNTA DEL EPISODIO</small><strong>¿Puede regresar a su volumen habitual de carrera sin aumentar síntomas?</strong></div><dl><div><dt>Problema</dt><dd>{athlete.episode}</dd></div><div><dt>Momento</dt><dd>Semana 8 · Reevaluación</dd></div><div><dt>Decisión abierta</dt><dd>Progresar exposición</dd></div></dl><button onClick={startCase}>Abrir expediente de Mariana <ChevronRight/></button></article>
+    </section>
+    <section className="welcome-journey"><div><span>RECORRIDO DEL DEMO</span><h2>Un caso, de principio a fin</h2></div><ol>{journey.map(x=><li key={x.n}><b>{x.n}</b><span><strong>{x.label}</strong><small>{x.detail}</small></span></li>)}</ol></section>
   </main>
 }
 
