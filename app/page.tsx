@@ -1,170 +1,124 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowDownRight, ArrowRight, ArrowUpRight, Bell, BookOpen, Check,
-  ChevronRight, CircleDot, Clock3, Download, FileText, Grid2X2, Layers3,
-  Menu, MoreHorizontal, Play, Plus, ScanLine, Search, ShieldCheck,
-  SlidersHorizontal, Upload, UserRound, UsersRound, Zap,
+  Activity, ArrowLeft, ArrowRight, BarChart3, CalendarDays, Check, ChevronRight,
+  CircleAlert, FileDown, FileText, Grid2X2, Menu, Pause, Play, Plus, Search,
+  Target, Upload, UserRound, UsersRound, X,
 } from "lucide-react";
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart,
-  Line, PolarAngleAxis, PolarGrid, Radar, RadarChart, ReferenceLine,
-  ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line,
+  PolarAngleAxis, PolarGrid, Radar, RadarChart, ReferenceLine, ResponsiveContainer,
+  Tooltip, XAxis, YAxis,
 } from "recharts";
 
-type View = "hub" | "assessment" | "report";
+type Page = "today" | "athletes" | "workspace" | "performance" | "assessment" | "report";
+type Athlete = { id:string; initials:string; name:string; sport:string; age:number; episode:string; region:string; status:string; next:string; progress:number };
 
-const forceData = [
-  { t: "0.0", right: 0, left: 0, total: 0 }, { t: "0.4", right: 410, left: 386, total: 796 },
-  { t: "0.8", right: 615, left: 582, total: 1197 }, { t: "1.2", right: 534, left: 505, total: 1039 },
-  { t: "1.6", right: 190, left: 172, total: 362 }, { t: "2.0", right: 45, left: 39, total: 84 },
-  { t: "2.4", right: 522, left: 476, total: 998 }, { t: "2.8", right: 731, left: 674, total: 1405 },
-  { t: "3.2", right: 448, left: 421, total: 869 }, { t: "3.6", right: 303, left: 288, total: 591 },
-  { t: "4.0", right: 244, left: 231, total: 475 },
+const seedAthletes: Athlete[] = [
+  { id:"MUVE-0024", initials:"ML", name:"Mariana López", sport:"Running", age:29, episode:"Dolor femoropatelar", region:"Rodilla derecha", status:"En seguimiento", next:"Hoy · 16:30", progress:75 },
+  { id:"MUVE-0031", initials:"DC", name:"Diego Carrillo", sport:"Fútbol", age:23, episode:"Lesión de isquiotibiales", region:"Muslo izquierdo", status:"Reevaluación", next:"Mañana · 09:00", progress:58 },
+  { id:"MUVE-0018", initials:"AR", name:"Ana Rodríguez", sport:"CrossFit", age:32, episode:"Dolor de hombro", region:"Hombro derecho", status:"Plan activo", next:"30 sep · 11:30", progress:42 },
+  { id:"MUVE-0040", initials:"JM", name:"Jorge Méndez", sport:"Pádel", age:38, episode:"Esguince lateral", region:"Tobillo izquierdo", status:"Ingreso", next:"1 oct · 18:00", progress:12 },
 ];
 
 const progressData = [
-  { date: "12 JUN", right: 24.8, left: 21.9 }, { date: "26 JUN", right: 26.1, left: 23.8 },
-  { date: "10 JUL", right: 27.6, left: 25.4 }, { date: "24 JUL", right: 29.8, left: 27.9 },
-  { date: "07 AGO", right: 31.8, left: 29.6 },
+  {date:"12 JUN",right:24.8,left:21.9},{date:"26 JUN",right:26.1,left:23.8},
+  {date:"10 JUL",right:27.6,left:25.4},{date:"24 JUL",right:29.8,left:27.9},{date:"07 AGO",right:31.8,left:29.6},
 ];
-
-const profile = [
-  { k: "MOV", now: 94, base: 61 }, { k: "FZA", now: 86, base: 58 },
-  { k: "POT", now: 91, base: 65 }, { k: "CTRL", now: 82, base: 56 },
-  { k: "TOL", now: 74, base: 42 },
+const forceData = [
+  {t:"0.0",right:0,left:0,total:0},{t:"0.4",right:410,left:386,total:796},{t:"0.8",right:615,left:582,total:1197},
+  {t:"1.2",right:534,left:505,total:1039},{t:"1.6",right:190,left:172,total:362},{t:"2.0",right:45,left:39,total:84},
+  {t:"2.4",right:522,left:476,total:998},{t:"2.8",right:731,left:674,total:1405},{t:"3.2",right:448,left:421,total:869},
+  {t:"3.6",right:303,left:288,total:591},{t:"4.0",right:244,left:231,total:475},
 ];
+const profile = [{k:"MOV",now:94,base:61},{k:"FZA",now:86,base:58},{k:"POT",now:91,base:65},{k:"CTRL",now:82,base:56},{k:"TOL",now:74,base:42}];
+const asymmetry = [{name:"CMJ",value:6.9,color:"#78f0c3"},{name:"Single hop",value:8.6,color:"#70a5ff"},{name:"Heel raise",value:9.8,color:"#f4bd62"},{name:"Dorsiflexión",value:4.2,color:"#b494ff"}];
 
-const asymmetry = [
-  { name: "CMJ", value: 6.9, color: "#78f0c3" }, { name: "Single hop", value: 8.6, color: "#70a5ff" },
-  { name: "Heel raise", value: 9.8, color: "#f4bd62" }, { name: "Dorsiflexión", value: 4.2, color: "#b494ff" },
-];
+export default function Home(){
+  const [page,setPage]=useState<Page>("today");
+  const [athletes,setAthletes]=useState(seedAthletes);
+  const [selected,setSelected]=useState<Athlete|null>(null);
+  const [query,setQuery]=useState("");
+  const [mobile,setMobile]=useState(false);
+  const [newOpen,setNewOpen]=useState(false);
+  const [toast,setToast]=useState("");
+  const flash=(s:string)=>{setToast(s);window.setTimeout(()=>setToast(""),2400)};
+  const results=useMemo(()=>query.trim()?athletes.filter(a=>`${a.name} ${a.id} ${a.sport}`.toLowerCase().includes(query.toLowerCase())).slice(0,5):[],[query,athletes]);
+  const openAthlete=(a:Athlete)=>{setSelected(a);setPage("workspace");setQuery("");setMobile(false)};
+  const go=(p:Page)=>{setPage(p);setMobile(false)};
 
-const nav = [
-  { id: "hub" as View, label: "Centro de rendimiento", icon: Grid2X2 },
-  { id: "assessment" as View, label: "Evaluación biomecánica", icon: ScanLine },
-  { id: "report" as View, label: "Informe clínico", icon: FileText },
-];
-
-export default function Home() {
-  const [view, setView] = useState<View>("hub");
-  const [mobile, setMobile] = useState(false);
-  const [toast, setToast] = useState("");
-  const flash = (message: string) => { setToast(message); window.setTimeout(() => setToast(""), 2200); };
-
-  return <main className="lab-shell">
-    <aside className={`lab-rail ${mobile ? "open" : ""}`}>
-      <button className="rail-brand" onClick={() => setView("hub")} aria-label="MUVETHERAPY">M</button>
-      <nav>
-        {nav.map(({ id, label, icon: Icon }) => <button key={id} className={view === id ? "active" : ""} onClick={() => { setView(id); setMobile(false); }} aria-label={label} title={label}><Icon /><span>{label}</span></button>)}
-        <i className="rail-separator" />
-        <button aria-label="Atletas" title="Atletas"><UsersRound /><span>Atletas</span></button>
-        <button aria-label="Biblioteca" title="Biblioteca"><BookOpen /><span>Biblioteca</span></button>
-      </nav>
-      <div className="rail-profile">NH</div>
+  return <main className="muve-app">
+    <aside className={`muve-rail ${mobile?"open":""}`}>
+      <button className="brand-mark" onClick={()=>go("today")} aria-label="Ir a inicio">M</button>
+      <nav aria-label="Navegación principal">
+        <NavButton active={page==="today"} label="Hoy" icon={<Grid2X2/>} onClick={()=>go("today")}/>
+        <NavButton active={page==="athletes"} label="Atletas" icon={<UsersRound/>} onClick={()=>go("athletes")}/>
+        {selected&&<><span className="nav-rule"/><NavButton active={page==="workspace"} label="Expediente" icon={<UserRound/>} onClick={()=>go("workspace")}/><NavButton active={page==="performance"} label="Rendimiento" icon={<BarChart3/>} onClick={()=>go("performance")}/><NavButton active={page==="assessment"} label="Evaluar" icon={<Activity/>} onClick={()=>go("assessment")}/><NavButton active={page==="report"} label="Reportes" icon={<FileText/>} onClick={()=>go("report")}/></>}
+      </nav><div className="user-badge">NH</div>
     </aside>
-    {mobile && <button className="lab-scrim" onClick={() => setMobile(false)} aria-label="Cerrar navegación" />}
+    {mobile&&<button className="nav-scrim" onClick={()=>setMobile(false)} aria-label="Cerrar navegación"/>}
 
-    <section className="lab-main">
-      <header className="lab-topbar">
-        <button className="lab-menu" onClick={() => setMobile(true)} aria-label="Abrir navegación"><Menu /></button>
-        <div className="lab-wordmark"><strong>MUVE</strong><span>THERAPY / PERFORMANCE OS</span></div>
-        <div className="lab-search"><Search /><input aria-label="Buscar" placeholder="Buscar atleta, prueba o protocolo" /></div>
-        <div className="lab-top-actions"><span className="live-state"><i /> SISTEMA ACTIVO</span><button aria-label="Notificaciones"><Bell /><b>2</b></button><div className="top-user">NH</div></div>
+    <section className="muve-main">
+      <header className="muve-topbar">
+        <button className="mobile-menu" onClick={()=>setMobile(true)} aria-label="Abrir navegación"><Menu/></button>
+        <div className="wordmark"><strong>MUVE</strong><span>THERAPY · CLINICAL PERFORMANCE</span></div>
+        <div className="global-search"><Search/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar atleta por nombre o expediente" aria-label="Buscar atleta"/>{query&&<button onClick={()=>setQuery("")} aria-label="Limpiar búsqueda"><X/></button>}{results.length>0&&<div className="search-results">{results.map(a=><button key={a.id} onClick={()=>openAthlete(a)}><span className="search-avatar">{a.initials}</span><span><strong>{a.name}</strong><small>{a.id} · {a.sport}</small></span><ChevronRight/></button>)}</div>}{query&&results.length===0&&<div className="search-results empty">Sin coincidencias</div>}</div>
+        <div className="system-state"><i/> SISTEMA ACTIVO</div><div className="user-badge top">NH</div>
       </header>
 
-      <section className="athlete-strip">
-        <div className="athlete-core"><div className="athlete-monogram">ML</div><div><span>ATLETA · MUVE-0024</span><h1>Mariana López</h1><p>Running · 29 años · Pierna dominante: derecha</p></div></div>
-        <div className="active-case"><span><i /> EPISODIO ACTIVO</span><strong>Dolor femoropatelar · rodilla derecha</strong><small>Semana 8 · Reevaluación hoy 16:30</small></div>
-        <div className="athlete-actions"><button className="lab-secondary" onClick={() => flash("Importador preparado")}><Upload />Importar</button><button className="lab-primary" onClick={() => setView("assessment")}><Plus />Nueva evaluación</button></div>
-      </section>
-
-      <div className="lab-canvas">
-        {view === "hub" && <PerformanceHub setView={setView} />}
-        {view === "assessment" && <Biomechanics flash={flash} />}
-        {view === "report" && <ClinicalReport flash={flash} />}
+      {selected&&page!=="today"&&page!=="athletes"&&<AthleteContext athlete={selected} page={page} go={go} back={()=>go("athletes")}/>} 
+      <div className="muve-canvas">
+        {page==="today"&&<Today athletes={athletes} openAthlete={openAthlete} showAthletes={()=>go("athletes")} newAthlete={()=>setNewOpen(true)}/>} 
+        {page==="athletes"&&<Athletes athletes={athletes} openAthlete={openAthlete} newAthlete={()=>setNewOpen(true)}/>} 
+        {page==="workspace"&&selected&&<Workspace athlete={selected} go={go}/>} 
+        {page==="performance"&&selected&&<Performance/>}
+        {page==="assessment"&&selected&&<Assessment flash={flash}/>} 
+        {page==="report"&&selected&&<Report athlete={selected}/>} 
       </div>
     </section>
-    {toast && <div className="lab-toast"><Check />{toast}</div>}
-  </main>;
+    {newOpen&&<NewAthleteModal close={()=>setNewOpen(false)} save={(name,sport)=>{const parts=name.trim().split(/\s+/);const initials=(parts[0]?.[0]||"A")+(parts[1]?.[0]||"");const a:Athlete={id:`MUVE-${String(athletes.length+41).padStart(4,"0")}`,initials:initials.toUpperCase(),name,sport,age:0,episode:"Sin episodio activo",region:"Por definir",status:"Nuevo ingreso",next:"Sin cita",progress:0};setAthletes(v=>[a,...v]);setNewOpen(false);openAthlete(a);flash("Atleta agregado al demo")}}/>}
+    {toast&&<div className="muve-toast"><Check/>{toast}</div>}
+  </main>
 }
 
-function PerformanceHub({ setView }: { setView: (v: View) => void }) {
-  return <>
-    <div className="screen-title"><div><span>PERFORMANCE INTELLIGENCE</span><h2>Centro de rendimiento</h2><p>Lectura longitudinal de capacidad, carga y respuesta clínica.</p></div><div className="title-tools"><button><SlidersHorizontal /> Configurar vista</button><button><MoreHorizontal /></button></div></div>
-    <section className="kpi-grid">
-      <Kpi code="CMJ / ALTURA" value="31.8" unit="CM" delta="+28%" positive series={[22,25,24,28,29,32]} />
-      <Kpi code="SIMETRÍA" value="93.1" unit="%" delta="+15.2" positive series={[78,81,84,87,90,93]} />
-      <Kpi code="FLEXIÓN RODILLA" value="146" unit="°" delta="+18°" positive series={[128,134,139,141,143,146]} />
-      <Kpi code="DOLOR / NPRS" value="2" unit="/10" delta="−4" positive series={[6,5,5,4,3,2]} inverse />
-      <Kpi code="EXPOSICIÓN" value="16" unit="MIN" delta="Meta 20" series={[0,4,6,8,12,16]} />
-    </section>
+function NavButton({active,label,icon,onClick}:{active:boolean;label:string;icon:React.ReactNode;onClick:()=>void}){return <button className={active?"active":""} onClick={onClick} aria-label={label}>{icon}<span>{label}</span></button>}
 
-    <section className="performance-layout">
-      <article className="lab-panel force-panel">
-        <PanelHead eyebrow="FORCE TRACE · ÚLTIMO TEST" title="Countermovement jump" meta="07 AGO 2026 · 240 FPS" />
-        <div className="force-main"><ResponsiveContainer width="100%" height="100%"><AreaChart data={forceData} margin={{ top: 12, right: 16, left: -10, bottom: 0 }}><defs><linearGradient id="totalForce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#d7e653" stopOpacity=".22"/><stop offset="1" stopColor="#d7e653" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#23313d" vertical={false}/><XAxis dataKey="t" stroke="#52616c" tick={{fill:"#71818d",fontSize:10}} tickLine={false}/><YAxis stroke="#52616c" tick={{fill:"#71818d",fontSize:10}} tickLine={false}/><Tooltip contentStyle={{background:"#111b24",border:"1px solid #34434f",borderRadius:6,color:"#fff"}}/><ReferenceLine y={1200} stroke="#6f7d87" strokeDasharray="4 5"/><Area dataKey="total" stroke="#d7e653" strokeWidth={2.5} fill="url(#totalForce)"/><Line dataKey="right" stroke="#42bde8" strokeWidth={1.7} dot={false}/><Line dataKey="left" stroke="#f27f69" strokeWidth={1.7} dot={false}/></AreaChart></ResponsiveContainer></div>
-        <div className="trace-legend"><span><i className="total"/>Fuerza total</span><span><i className="right"/>Derecha</span><span><i className="left"/>Izquierda</span><strong>Despegue 2.03 s</strong><strong>Aterrizaje 2.46 s</strong></div>
-      </article>
-
-      <article className="lab-panel profile-panel-dark"><PanelHead eyebrow="PERFIL DE CAPACIDAD" title="Actual vs. ingreso" meta="5 DOMINIOS" /><div className="dark-radar"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profile} outerRadius="69%"><PolarGrid stroke="#2a3945"/><PolarAngleAxis dataKey="k" tick={{fill:"#84939e",fontSize:10,fontWeight:700}}/><Radar dataKey="base" stroke="#566672" fill="#566672" fillOpacity={.12}/><Radar dataKey="now" stroke="#6de8bc" strokeWidth={2} fill="#6de8bc" fillOpacity={.2}/></RadarChart></ResponsiveContainer></div><div className="profile-key"><span><i/>Actual</span><span><i/>Ingreso</span><strong>Brecha: tolerancia</strong></div></article>
-
-      <article className="lab-panel progress-panel"><PanelHead eyebrow="EVOLUCIÓN · 8 SEMANAS" title="CMJ bilateral" meta="ALTURA EN CM" /><div className="progress-chart"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={progressData} margin={{top:10,right:12,left:-12,bottom:0}}><CartesianGrid stroke="#23313d" vertical={false}/><XAxis dataKey="date" tick={{fill:"#71818d",fontSize:9}} axisLine={false} tickLine={false}/><YAxis domain={[20,34]} tick={{fill:"#71818d",fontSize:9}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:"#111b24",border:"1px solid #34434f",borderRadius:6,color:"#fff"}}/><ReferenceLine y={30} stroke="#4e5d68" strokeDasharray="4 5"/><Line dataKey="right" name="Derecha" stroke="#70a5ff" strokeWidth={2.5} dot={{r:3,fill:"#0d151c",strokeWidth:2}}/><Line dataKey="left" name="Izquierda" stroke="#6de8bc" strokeWidth={2.5} dot={{r:3,fill:"#0d151c",strokeWidth:2}}/></ComposedChart></ResponsiveContainer></div></article>
-
-      <article className="lab-panel asymmetry-panel-dark"><PanelHead eyebrow="CONTROL BILATERAL" title="Asimetría por prueba" meta="UMBRAL 10%" /><div className="dark-bars"><ResponsiveContainer width="100%" height="100%"><BarChart data={asymmetry} layout="vertical" margin={{top:5,right:24,left:12,bottom:0}}><XAxis type="number" domain={[0,12]} hide/><YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={82} tick={{fill:"#87949e",fontSize:10}}/><ReferenceLine x={10} stroke="#e89e46" strokeDasharray="3 4"/><Tooltip contentStyle={{background:"#111b24",border:"1px solid #34434f",borderRadius:6,color:"#fff"}}/><Bar dataKey="value" radius={[0,4,4,0]} barSize={9}>{asymmetry.map(x=><Cell key={x.name} fill={x.color}/>)}</Bar></BarChart></ResponsiveContainer></div><div className="criterion-ok"><ShieldCheck/><span><strong>4/4 pruebas</strong> dentro de criterio</span></div></article>
-
-      <article className="decision-core"><div className="decision-top"><span><i/>DECISIÓN ABIERTA</span><em>RETORNO A CARRERA</em></div><div className="decision-body"><div className="decision-number"><strong>6<small>/8</small></strong><span>dominios<br/>cumplidos</span></div><div><h3>Preparada para exposición controlada</h3><p>Falta confirmar carrera continua de 20 minutos y respuesta a las 24 horas.</p></div></div><div className="decision-footer"><span><Clock3/>Próxima revisión · Hoy 16:30</span><button onClick={() => setView("report")}>Abrir decisión <ArrowRight/></button></div></article>
-    </section>
-  </>;
+function Today({athletes,openAthlete,showAthletes,newAthlete}:{athletes:Athlete[];openAthlete:(a:Athlete)=>void;showAthletes:()=>void;newAthlete:()=>void}){
+  return <><div className="page-heading hero-heading"><div><span>DOMINGO · 28 SEPTIEMBRE 2026</span><h1>Buenas tardes, Nahum.</h1><p>Este es el pulso clínico y deportivo de hoy.</p></div><button className="primary-action" onClick={newAthlete}><Plus/>Nuevo atleta</button></div>
+    <section className="overview-grid"><Metric icon={<CalendarDays/>} label="Citas de hoy" value="6" detail="2 reevaluaciones" tone="mint"/><Metric icon={<CircleAlert/>} label="Requieren atención" value="3" detail="Respuesta adversa o pendiente" tone="orange"/><Metric icon={<Target/>} label="Decisiones abiertas" value="4" detail="Retorno y progresión" tone="blue"/><Metric icon={<UsersRound/>} label="Atletas activos" value={String(athletes.length)} detail="4 episodios en curso" tone="violet"/></section>
+    <section className="today-layout">
+      <article className="surface schedule-panel"><div className="section-head"><div><span>AGENDA CLÍNICA</span><h2>Próximas sesiones</h2></div><button className="text-action" onClick={showAthletes}>Ver atletas <ArrowRight/></button></div><div className="schedule-list">{[athletes[0],athletes[1],athletes[2]].map((a,i)=><div className="schedule-row" key={a.id}><time>{["16:30","09:00","11:30"][i]}</time><span className="row-avatar">{a.initials}</span><div><strong>{a.name}</strong><small>{i===0?"Reevaluación · Rodilla":i===1?"Fuerza y sprint · Isquios":"Seguimiento · Hombro"}</small></div><span className={`status-pill ${i===0?"mint":""}`}>{i===0?"Hoy":"Próxima"}</span><button onClick={()=>openAthlete(a)}>Abrir <ChevronRight/></button></div>)}</div></article>
+      <article className="surface attention-panel"><div className="section-head"><div><span>PRIORIDAD CLÍNICA</span><h2>Requieren atención</h2></div></div><button className="attention-item" onClick={()=>openAthlete(athletes[0])}><i className="orange"/><span><strong>Respuesta a 24 h pendiente</strong><small>Mariana López · Carrera 16 min</small></span><ChevronRight/></button><button className="attention-item" onClick={()=>openAthlete(athletes[1])}><i className="blue"/><span><strong>Reevaluación programada</strong><small>Diego Carrillo · CMJ y sprint</small></span><ChevronRight/></button><button className="attention-item" onClick={()=>openAthlete(athletes[3])}><i className="violet"/><span><strong>Completar ingreso</strong><small>Jorge Méndez · Consentimiento</small></span><ChevronRight/></button></article>
+      <article className="surface readiness-panel"><div className="section-head"><div><span>RETORNO AL DEPORTE</span><h2>Estado de decisiones</h2></div></div><div className="readiness-chart"><div className="readiness-ring"><strong>4</strong><span>abiertas</span></div><div><span><i className="mint"/>2 listas para revisión</span><span><i className="orange"/>1 con criterio pendiente</span><span><i className="slate"/>1 sin datos suficientes</span></div></div></article>
+    </section></>
 }
 
-function Biomechanics({ flash }: { flash: (s:string) => void }) {
-  const [frame, setFrame] = useState(184);
-  const [quality, setQuality] = useState("Válido");
-  return <>
-    <div className="screen-title"><div><span>ANÁLISIS DE MOVIMIENTO</span><h2>Sentadilla bilateral</h2><p>Plano sagital · intento 2 de 3 · 240 fps</p></div><div className="title-tools"><button><Upload/>Cambiar video</button><button className="accent" onClick={()=>flash("Evaluación guardada")}><Check/>Guardar análisis</button></div></div>
-    <section className="analysis-layout">
-      <article className="video-workspace">
-        <div className="video-toolbar"><div><span className="rec-dot"/>VIDEO ORIGINAL</div><span>00:00:03.24</span><div><button>50%</button><button>1×</button><button><MoreHorizontal/></button></div></div>
-        <div className="video-stage"><img src="/Muve-/biomech-squat.jpg" alt="Atleta realizando una sentadilla para análisis biomecánico"/><div className="grid-overlay"/><span className="joint hip"/><span className="joint knee"/><span className="joint ankle"/><i className="segment femur"/><i className="segment tibia"/><div className="angle knee-angle"><b>82.4°</b><span>RODILLA</span></div><div className="angle hip-angle"><b>68.1°</b><span>CADERA</span></div><div className="axis-line"/></div>
-        <div className="video-controls"><button onClick={()=>setFrame(Math.max(0,frame-1))}>−1</button><button className="play"><Play/></button><button onClick={()=>setFrame(frame+1)}>+1</button><div className="scrubber"><i style={{width:`${Math.min(100,frame/240*100)}%`}}/><b style={{left:`${Math.min(100,frame/240*100)}%`}}/></div><span>FRAME <strong>{frame}</strong> / 240</span></div>
-      </article>
+function Metric({icon,label,value,detail,tone}:{icon:React.ReactNode;label:string;value:string;detail:string;tone:string}){return <article className="overview-card"><div className={`metric-icon ${tone}`}>{icon}</div><div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div></article>}
 
-      <aside className="analysis-inspector">
-        <div className="inspector-head"><div><span>RESULTADOS DEL FRAME</span><h3>Profundidad máxima</h3></div><button><MoreHorizontal/></button></div>
-        <div className="angle-stack"><AngleMetric label="Flexión de cadera" value="68.1°" delta="+4.2°"/><AngleMetric label="Flexión de rodilla" value="82.4°" delta="+8.6°" warning/><AngleMetric label="Dorsiflexión" value="31.6°" delta="+3.1°"/><AngleMetric label="Inclinación de tronco" value="27.3°" delta="−2.8°"/></div>
-        <div className="quality-block"><span>CALIDAD DEL INTENTO</span><div>{["Válido","Dolor","Compensación"].map(x=><button key={x} className={quality===x?"active":""} onClick={()=>setQuality(x)}>{x==="Válido"&&<Check/>}{x}</button>)}</div></div>
-        <label className="clinical-note"><span>OBSERVACIÓN CLÍNICA</span><textarea defaultValue="Buen control del tronco. Ligero desplazamiento anterior de rodilla derecha al final del descenso, sin incremento de dolor." /></label>
-        <div className="capture-summary"><span><CircleDot/>3 puntos anatómicos</span><span><Layers3/>2 segmentos</span><span><Zap/>2 ángulos calculados</span></div>
-      </aside>
-    </section>
-  </>;
+function Athletes({athletes,openAthlete,newAthlete}:{athletes:Athlete[];openAthlete:(a:Athlete)=>void;newAthlete:()=>void}){
+  const [filter,setFilter]=useState("");const visible=athletes.filter(a=>`${a.name} ${a.sport} ${a.episode}`.toLowerCase().includes(filter.toLowerCase()));
+  return <><div className="page-heading"><div><span>GESTIÓN CLÍNICA</span><h1>Atletas</h1><p>Selecciona un atleta para abrir su expediente y episodio activo.</p></div><button className="primary-action" onClick={newAthlete}><Plus/>Nuevo atleta</button></div><section className="surface athlete-directory"><div className="directory-toolbar"><label><Search/><input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Filtrar por nombre, deporte o lesión"/></label><span>{visible.length} atletas</span></div><div className="athlete-table head"><span>ATLETA</span><span>EPISODIO ACTIVO</span><span>PROGRESO</span><span>PRÓXIMA ACTIVIDAD</span><span/></div>{visible.map(a=><div className="athlete-table" key={a.id}><div className="athlete-cell"><span className="row-avatar large">{a.initials}</span><span><strong>{a.name}</strong><small>{a.id} · {a.sport}{a.age?` · ${a.age} años`:""}</small></span></div><div><strong>{a.episode}</strong><small>{a.region} · {a.status}</small></div><div className="progress-cell"><span><i style={{width:`${a.progress}%`}}/></span><small>{a.progress}%</small></div><div><strong>{a.next}</strong><small>{a.progress===0?"Ingreso pendiente":"Sesión programada"}</small></div><button className="row-open" onClick={()=>openAthlete(a)}>Abrir expediente <ChevronRight/></button></div>)}{visible.length===0&&<div className="empty-state"><UsersRound/><strong>No encontramos atletas</strong><span>Prueba con otro nombre o deporte.</span></div>}</section></>
 }
 
-function ClinicalReport({ flash }: { flash: (s:string) => void }) {
-  const [audience,setAudience]=useState("Atleta");
-  return <>
-    <div className="screen-title"><div><span>REPORTING STUDIO</span><h2>Informe de evolución</h2><p>Una misma evidencia, adaptada a cada destinatario.</p></div><div className="title-tools"><button><MoreHorizontal/></button><button className="accent" onClick={()=>flash(`PDF para ${audience.toLowerCase()} generado`)}><Download/>Generar PDF</button></div></div>
-    <section className="report-studio">
-      <aside className="report-settings"><span className="settings-label">DESTINATARIO</span><div className="audience-list">{["Atleta","Fisioterapeuta","Médico","Entrenador"].map(a=><button key={a} className={audience===a?"active":""} onClick={()=>setAudience(a)}><UserRound/><span>{a}<small>{a==="Atleta"?"Resumen visual":a==="Fisioterapeuta"?"Detalle clínico":"Información autorizada"}</small></span><ChevronRight/></button>)}</div><span className="settings-label">SECCIONES</span><div className="report-switches">{["Resumen ejecutivo","Evolución","Perfil de capacidad","Próximos pasos"].map(x=><label key={x}><span>{x}</span><input type="checkbox" defaultChecked/></label>)}</div><div className="report-brand"><div className="mini-brand">M</div><span><strong>MUVETHERAPY</strong><small>Marca aplicada</small></span><Check/></div></aside>
-      <article className="report-paper">
-        <header><div className="paper-brand"><div>M</div><span><strong>MUVE</strong><small>THERAPY</small></span></div><div><span>INFORME PARA {audience.toUpperCase()}</span><strong>25 SEP 2026</strong></div></header>
-        <section className="paper-athlete"><div><span>ATLETA</span><h2>Mariana López</h2><p>Running · 29 años · Rodilla derecha</p></div><div><span>EPISODIO</span><strong>Dolor femoropatelar</strong><small>Semana 8</small></div></section>
-        <section className="paper-result"><div><span>ESTADO ACTUAL</span><h3>Progreso favorable con dos criterios pendientes</h3><p>La capacidad física ha mejorado de forma consistente. La progresión a carrera continua requiere confirmar exposición de 20 minutos y respuesta a las 24 horas.</p></div><strong>6<small>/8</small><em>dominios</em></strong></section>
-        <section className="paper-kpis"><div><span>DOLOR</span><strong>2<small>/10</small></strong><em>−4 pts</em></div><div><span>FLEXIÓN</span><strong>146<small>°</small></strong><em>+18°</em></div><div><span>SIMETRÍA</span><strong>93<small>%</small></strong><em>+15 pts</em></div><div><span>CMJ</span><strong>31.8<small> cm</small></strong><em>+28%</em></div></section>
-        <section className="paper-chart"><div><span>EVOLUCIÓN BILATERAL</span><h3>Altura de salto CMJ</h3></div><div><ResponsiveContainer width="100%" height="100%"><ComposedChart data={progressData} margin={{top:10,right:8,left:-18,bottom:0}}><CartesianGrid stroke="#dfe3df" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill:"#7f8781",fontSize:9}}/><YAxis domain={[20,34]} axisLine={false} tickLine={false} tick={{fill:"#7f8781",fontSize:9}}/><Line dataKey="right" stroke="#183d70" strokeWidth={2.2} dot={false}/><Line dataKey="left" stroke="#129474" strokeWidth={2.2} dot={false}/></ComposedChart></ResponsiveContainer></div></section>
-        <section className="paper-next"><span>PRÓXIMOS PASOS</span><div><Check/><p><strong>Carrera continua · 20 minutos</strong><small>Registrar dolor inmediato y respuesta a las 24 horas.</small></p></div><div><Check/><p><strong>Reevaluación de control bajo fatiga</strong><small>Comparar calidad de movimiento con la línea base.</small></p></div></section>
-        <footer><span>Datos de demostración · Caso ficticio</span><strong>Nahum H. · Fisioterapeuta</strong></footer>
-      </article>
-    </section>
-  </>;
+function AthleteContext({athlete,page,go,back}:{athlete:Athlete;page:Page;go:(p:Page)=>void;back:()=>void}){return <section className="athlete-context"><button className="back-button" onClick={back}><ArrowLeft/>Atletas</button><span className="context-avatar">{athlete.initials}</span><div><small>{athlete.id} · {athlete.sport}</small><strong>{athlete.name}</strong></div><div className="context-episode"><small>EPISODIO ACTIVO</small><strong>{athlete.episode} · {athlete.region}</strong></div><nav><button className={page==="workspace"?"active":""} onClick={()=>go("workspace")}>Resumen</button><button className={page==="performance"?"active":""} onClick={()=>go("performance")}>Rendimiento</button><button className={page==="assessment"?"active":""} onClick={()=>go("assessment")}>Evaluar</button><button className={page==="report"?"active":""} onClick={()=>go("report")}>Reportes</button></nav></section>}
+
+function Workspace({athlete,go}:{athlete:Athlete;go:(p:Page)=>void}){return <><div className="page-heading"><div><span>EXPEDIENTE · EPISODIO ACTIVO</span><h1>Resumen clínico</h1><p>Una vista de síntomas, capacidad, intervención y decisión.</p></div><button className="primary-action" onClick={()=>go("assessment")}><Activity/>Continuar evaluación</button></div><section className="workspace-grid"><article className="surface episode-summary"><div className="section-head"><div><span>ESTADO DEL EPISODIO</span><h2>{athlete.episode}</h2></div><span className="status-pill mint">Semana 8</span></div><p>Evolución favorable. Dolor reducido y recuperación consistente de movilidad, potencia y control bilateral.</p><div className="domain-progress">{[["Síntomas",86],["Capacidad",81],["Exposición",68],["Confianza",74]].map(x=><div key={x[0]}><span>{x[0]}</span><strong>{x[1]}%</strong><i><b style={{width:`${x[1]}%`}}/></i></div>)}</div></article><article className="surface key-data"><div className="section-head"><div><span>ÚLTIMA REEVALUACIÓN</span><h2>Indicadores clave</h2></div><button className="text-action" onClick={()=>go("performance")}>Abrir rendimiento <ArrowRight/></button></div><div className="key-data-grid"><div><span>DOLOR</span><strong>2<small>/10</small></strong><em>−4 puntos</em></div><div><span>FLEXIÓN</span><strong>146<small>°</small></strong><em>+18°</em></div><div><span>SIMETRÍA</span><strong>93<small>%</small></strong><em>+15 puntos</em></div><div><span>CMJ</span><strong>31.8<small> cm</small></strong><em>+28%</em></div></div></article><article className="surface timeline-card"><div className="section-head"><div><span>LÍNEA DE TIEMPO</span><h2>Evolución reciente</h2></div></div>{[["HOY","Reevaluación programada","CMJ, control unilateral y carrera continua"],["25 SEP","Sesión completada","Carrera 16 min · NPRS 2/10"],["18 SEP","Criterio cumplido","Simetría bilateral superior a 90%"],["12 SEP","Plan progresado","Inicio de exposición a carrera"]].map((x,i)=><div className="timeline-row" key={x[0]}><i className={i===0?"active":""}/><time>{x[0]}</time><span><strong>{x[1]}</strong><small>{x[2]}</small></span></div>)}</article><article className="surface decision-card"><span>DECISIÓN CLÍNICA ABIERTA</span><div className="decision-score"><strong>6<small>/8</small></strong><span>dominios<br/>cumplidos</span></div><h2>Exposición controlada a carrera</h2><p>Falta confirmar carrera continua de 20 minutos y respuesta a las 24 horas.</p><button className="secondary-action" onClick={()=>go("report")}>Revisar decisión <ArrowRight/></button></article></section></>}
+
+function Performance(){return <><div className="page-heading"><div><span>PERFORMANCE INTELLIGENCE</span><h1>Centro de rendimiento</h1><p>Capacidad absoluta, bilateral y cambio longitudinal.</p></div></div><section className="performance-layout"><article className="surface chart-large"><ChartHead label="FORCE TRACE · ÚLTIMO TEST" title="Countermovement jump" meta="07 AGO 2026 · 240 FPS"/><div className="chart-body tall"><ResponsiveContainer width="100%" height="100%"><AreaChart data={forceData} margin={{top:12,right:16,left:-10,bottom:0}}><defs><linearGradient id="totalForce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#d7e653" stopOpacity=".22"/><stop offset="1" stopColor="#d7e653" stopOpacity="0"/></linearGradient></defs><CartesianGrid stroke="#23313d" vertical={false}/><XAxis dataKey="t" stroke="#52616c" tick={{fill:"#71818d",fontSize:10}} tickLine={false}/><YAxis stroke="#52616c" tick={{fill:"#71818d",fontSize:10}} tickLine={false}/><Tooltip contentStyle={{background:"#111b24",border:"1px solid #34434f",borderRadius:6,color:"#fff"}}/><ReferenceLine y={1200} stroke="#6f7d87" strokeDasharray="4 5"/><Area dataKey="total" stroke="#d7e653" strokeWidth={2.5} fill="url(#totalForce)"/><Line dataKey="right" stroke="#42bde8" strokeWidth={1.7} dot={false}/><Line dataKey="left" stroke="#f27f69" strokeWidth={1.7} dot={false}/></AreaChart></ResponsiveContainer></div><div className="chart-legend"><span><i className="lime"/>Fuerza total</span><span><i className="blue"/>Derecha</span><span><i className="coral"/>Izquierda</span></div></article><article className="surface radar-card"><ChartHead label="PERFIL DE CAPACIDAD" title="Actual vs. ingreso" meta="5 DOMINIOS"/><div className="chart-body radar"><ResponsiveContainer width="100%" height="100%"><RadarChart data={profile} outerRadius="69%"><PolarGrid stroke="#2a3945"/><PolarAngleAxis dataKey="k" tick={{fill:"#84939e",fontSize:10,fontWeight:700}}/><Radar dataKey="base" stroke="#566672" fill="#566672" fillOpacity={.12}/><Radar dataKey="now" stroke="#6de8bc" strokeWidth={2} fill="#6de8bc" fillOpacity={.2}/></RadarChart></ResponsiveContainer></div><div className="chart-legend"><span><i className="mint"/>Actual</span><span><i className="slate"/>Ingreso</span></div></article><article className="surface progress-card"><ChartHead label="EVOLUCIÓN · 8 SEMANAS" title="CMJ bilateral" meta="ALTURA EN CM"/><div className="chart-body"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={progressData} margin={{top:10,right:12,left:-12,bottom:0}}><CartesianGrid stroke="#23313d" vertical={false}/><XAxis dataKey="date" tick={{fill:"#71818d",fontSize:9}} axisLine={false} tickLine={false}/><YAxis domain={[20,34]} tick={{fill:"#71818d",fontSize:9}} axisLine={false} tickLine={false}/><Tooltip contentStyle={{background:"#111b24",border:"1px solid #34434f",borderRadius:6,color:"#fff"}}/><Line dataKey="right" name="Derecha" stroke="#70a5ff" strokeWidth={2.5}/><Line dataKey="left" name="Izquierda" stroke="#6de8bc" strokeWidth={2.5}/></ComposedChart></ResponsiveContainer></div></article><article className="surface asymmetry-card"><ChartHead label="CONTROL BILATERAL" title="Asimetría por prueba" meta="UMBRAL 10%"/><div className="chart-body"><ResponsiveContainer width="100%" height="100%"><BarChart data={asymmetry} layout="vertical" margin={{top:5,right:24,left:12,bottom:0}}><XAxis type="number" domain={[0,12]} hide/><YAxis type="category" dataKey="name" axisLine={false} tickLine={false} width={82} tick={{fill:"#87949e",fontSize:10}}/><ReferenceLine x={10} stroke="#e89e46" strokeDasharray="3 4"/><Bar dataKey="value" radius={[0,4,4,0]} barSize={9}>{asymmetry.map(x=><Cell key={x.name} fill={x.color}/>)}</Bar></BarChart></ResponsiveContainer></div></article></section></>}
+
+function ChartHead({label,title,meta}:{label:string;title:string;meta:string}){return <div className="chart-head"><div><span>{label}</span><h2>{title}</h2></div><small>{meta}</small></div>}
+
+function Assessment({flash}:{flash:(s:string)=>void}){
+  const [frame,setFrame]=useState(184);const [playing,setPlaying]=useState(false);const [quality,setQuality]=useState("Válido");const [note,setNote]=useState("Buen control del tronco. Ligero desplazamiento anterior de rodilla derecha al final del descenso, sin incremento de dolor.");const [media,setMedia]=useState("");const [isVideo,setIsVideo]=useState(false);const inputRef=useRef<HTMLInputElement>(null);
+  useEffect(()=>{if(!playing)return;const id=window.setInterval(()=>setFrame(v=>v>=240?0:v+1),80);return()=>window.clearInterval(id)},[playing]);
+  return <><div className="page-heading"><div><span>ANÁLISIS DE MOVIMIENTO</span><h1>Sentadilla bilateral</h1><p>Plano sagital · intento 2 de 3 · 240 fps</p></div><div className="heading-actions"><input ref={inputRef} hidden type="file" accept="video/*,image/*" onChange={e=>{const f=e.target.files?.[0];if(f){setMedia(URL.createObjectURL(f));setIsVideo(f.type.startsWith("video"));flash(`${f.name} cargado`)}}}/><button className="secondary-action" onClick={()=>inputRef.current?.click()}><Upload/>Cambiar video</button><button className="primary-action" onClick={()=>flash("Evaluación guardada en el demo")}><Check/>Guardar evaluación</button></div></div><section className="analysis-layout"><article className="video-workspace"><div className="video-meta"><span><i/>VIDEO · INTENTO 02</span><strong>00:00:03.24</strong></div><div className="video-stage">{isVideo?<video src={media} controls/>:<img src={media||"/Muve-/biomech-squat.jpg"} alt="Atleta realizando sentadilla"/>}<div className="grid-overlay"/><span className="joint hip"/><span className="joint knee"/><span className="joint ankle"/><i className="segment femur"/><i className="segment tibia"/><div className="angle knee-angle"><b>82.4°</b><span>RODILLA</span></div><div className="angle hip-angle"><b>68.1°</b><span>CADERA</span></div></div><div className="frame-controls"><button onClick={()=>setFrame(v=>Math.max(0,v-1))}>−1 frame</button><button className="play-control" onClick={()=>setPlaying(v=>!v)}>{playing?<Pause/>:<Play/>}</button><button onClick={()=>setFrame(v=>Math.min(240,v+1))}>+1 frame</button><div className="scrubber"><i style={{width:`${frame/240*100}%`}}/><b style={{left:`${frame/240*100}%`}}/></div><span>FRAME <strong>{frame}</strong> / 240</span></div></article><aside className="surface analysis-inspector"><div className="section-head"><div><span>RESULTADOS DEL FRAME</span><h2>Profundidad máxima</h2></div></div><div className="angle-list">{[["Flexión de cadera","68.1°","+4.2°"],["Flexión de rodilla","82.4°","+8.6°"],["Dorsiflexión","31.6°","+3.1°"],["Inclinación de tronco","27.3°","−2.8°"]].map((x,i)=><div key={x[0]}><span>{x[0]}</span><strong>{x[1]}</strong><em className={i===1?"warn":""}>{x[2]}</em><i><b style={{width:i===1?"74%":"58%"}}/></i></div>)}</div><div className="quality-control"><span>CALIDAD DEL INTENTO</span><div>{["Válido","Dolor","Compensación"].map(x=><button className={quality===x?"active":""} key={x} onClick={()=>setQuality(x)}>{quality===x&&<Check/>}{x}</button>)}</div></div><label className="note-field"><span>OBSERVACIÓN CLÍNICA</span><textarea value={note} onChange={e=>setNote(e.target.value)}/></label><div className="capture-summary"><span>3 puntos anatómicos</span><span>2 segmentos</span><span>2 ángulos calculados</span></div></aside></section></>
 }
 
-function Kpi({code,value,unit,delta,positive,series,inverse}:{code:string;value:string;unit:string;delta:string;positive?:boolean;series:number[];inverse?:boolean}) {
-  const data=series.map((v,i)=>({i,v}));
-  return <article className="lab-kpi"><div><span>{code}</span><button><MoreHorizontal/></button></div><section><strong>{value}<small>{unit}</small></strong><em className={positive?"positive":""}>{positive?(inverse?<ArrowDownRight/>:<ArrowUpRight/>):null}{delta}</em></section><div className="kpi-spark"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data}><defs><linearGradient id={`k-${code.replaceAll(" ","")}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6de8bc" stopOpacity=".25"/><stop offset="1" stopColor="#6de8bc" stopOpacity="0"/></linearGradient></defs><Area dataKey="v" type="monotone" stroke="#6de8bc" strokeWidth={2} fill={`url(#k-${code.replaceAll(" ","")})`} dot={false}/></AreaChart></ResponsiveContainer></div></article>;
+function Report({athlete}:{athlete:Athlete}){
+  const [audience,setAudience]=useState("Atleta");const [sections,setSections]=useState({summary:true,evolution:true,next:true});
+  const copy=audience==="Atleta"?"Progreso favorable con dos criterios pendientes":audience==="Fisioterapeuta"?"Evolución clínica favorable; continuar progresión criterial":audience==="Médico"?"Resumen de evolución funcional y capacidad":"Disponibilidad parcial para exposición controlada";
+  return <><div className="page-heading"><div><span>REPORTING STUDIO</span><h1>Informe de evolución</h1><p>Contenido adaptado a cada destinatario y permiso.</p></div><button className="primary-action" onClick={()=>window.print()}><FileDown/>Imprimir / guardar PDF</button></div><section className="report-studio"><aside className="surface report-settings"><span>DESTINATARIO</span>{["Atleta","Fisioterapeuta","Médico","Entrenador"].map(x=><button className={audience===x?"active":""} key={x} onClick={()=>setAudience(x)}><UserRound/><span><strong>{x}</strong><small>{x==="Atleta"?"Lenguaje claro":x==="Fisioterapeuta"?"Detalle clínico":"Información autorizada"}</small></span><ChevronRight/></button>)}<span className="settings-title">SECCIONES</span><label>Resumen ejecutivo<input type="checkbox" checked={sections.summary} onChange={e=>setSections(v=>({...v,summary:e.target.checked}))}/></label><label>Evolución bilateral<input type="checkbox" checked={sections.evolution} onChange={e=>setSections(v=>({...v,evolution:e.target.checked}))}/></label><label>Próximos pasos<input type="checkbox" checked={sections.next} onChange={e=>setSections(v=>({...v,next:e.target.checked}))}/></label></aside><article className="report-paper"><header><div className="paper-brand"><b>M</b><span><strong>MUVE</strong><small>THERAPY</small></span></div><div><span>INFORME PARA {audience.toUpperCase()}</span><strong>28 SEP 2026</strong></div></header><section className="paper-athlete"><div><span>ATLETA</span><h2>{athlete.name}</h2><p>{athlete.sport} · {athlete.age||"—"} años · {athlete.region}</p></div><div><span>EPISODIO</span><strong>{athlete.episode}</strong><small>Semana 8</small></div></section>{sections.summary&&<><section className="paper-result"><div><span>ESTADO ACTUAL</span><h2>{copy}</h2><p>La capacidad ha mejorado de forma consistente. La progresión requiere confirmar exposición de 20 minutos y respuesta a las 24 horas.</p></div><strong>6<small>/8</small></strong></section><section className="paper-kpis"><div><span>DOLOR</span><strong>2<small>/10</small></strong><em>−4 pts</em></div><div><span>FLEXIÓN</span><strong>146<small>°</small></strong><em>+18°</em></div><div><span>SIMETRÍA</span><strong>93<small>%</small></strong><em>+15 pts</em></div><div><span>CMJ</span><strong>31.8<small> cm</small></strong><em>+28%</em></div></section></>}{sections.evolution&&<section className="paper-chart"><span>EVOLUCIÓN BILATERAL</span><h2>Altura de salto CMJ</h2><div><ResponsiveContainer width="100%" height="100%"><ComposedChart data={progressData}><CartesianGrid stroke="#dfe3df" vertical={false}/><XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill:"#7f8781",fontSize:9}}/><YAxis domain={[20,34]} axisLine={false} tickLine={false} tick={{fill:"#7f8781",fontSize:9}}/><Line dataKey="right" stroke="#183d70" strokeWidth={2.2}/><Line dataKey="left" stroke="#129474" strokeWidth={2.2}/></ComposedChart></ResponsiveContainer></div></section>}{sections.next&&<section className="paper-next"><span>PRÓXIMOS PASOS</span><div><Check/><p><strong>Carrera continua · 20 minutos</strong><small>Registrar dolor inmediato y respuesta a las 24 horas.</small></p></div><div><Check/><p><strong>Reevaluación bajo fatiga</strong><small>Comparar calidad de movimiento con la línea base.</small></p></div></section>}<footer><span>Datos ficticios para demostración</span><strong>Nahum H. · Fisioterapeuta</strong></footer></article></section></>
 }
 
-function PanelHead({eyebrow,title,meta}:{eyebrow:string;title:string;meta:string}) { return <div className="panel-head-dark"><div><span>{eyebrow}</span><h3>{title}</h3></div><em>{meta}</em><button><MoreHorizontal/></button></div>; }
-function AngleMetric({label,value,delta,warning}:{label:string;value:string;delta:string;warning?:boolean}) { return <div className="angle-metric"><span>{label}</span><strong>{value}</strong><em className={warning?"warning":""}>{delta}</em><div><i style={{width:warning?"74%":"58%"}}/></div></div>; }
+function NewAthleteModal({close,save}:{close:()=>void;save:(n:string,s:string)=>void}){const [name,setName]=useState("");const [sport,setSport]=useState("");return <div className="modal-backdrop" role="presentation"><section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="new-athlete-title"><header><div><span>NUEVO EXPEDIENTE</span><h2 id="new-athlete-title">Agregar atleta</h2></div><button onClick={close} aria-label="Cerrar"><X/></button></header><label>Nombre completo<input autoFocus value={name} onChange={e=>setName(e.target.value)} placeholder="Ej. Carlos Martínez"/></label><label>Deporte<input value={sport} onChange={e=>setSport(e.target.value)} placeholder="Ej. Fútbol"/></label><div><button className="secondary-action" onClick={close}>Cancelar</button><button className="primary-action" disabled={!name.trim()||!sport.trim()} onClick={()=>save(name.trim(),sport.trim())}>Crear expediente</button></div></section></div>}
