@@ -45,7 +45,7 @@ export default function Home(){
   const [toast,setToast]=useState("");
   const flash=(s:string)=>{setToast(s);window.setTimeout(()=>setToast(""),2400)};
   const results=useMemo(()=>query.trim()?athletes.filter(a=>`${a.name} ${a.id} ${a.sport}`.toLowerCase().includes(query.toLowerCase())).slice(0,5):[],[query,athletes]);
-  const openAthlete=(a:Athlete)=>{setSelected(a);setPage("workspace");setQuery("");setMobile(false)};
+  const openAthlete=(a:Athlete,target:Page="workspace")=>{setSelected(a);setPage(target);setQuery("");setMobile(false)};
   const go=(p:Page)=>{setPage(p);setMobile(false)};
 
   return <main className="muve-app">
@@ -90,17 +90,27 @@ export default function Home(){
 
 function NavButton({active,label,icon,onClick}:{active:boolean;label:string;icon:React.ReactNode;onClick:()=>void}){return <button className={active?"active":""} onClick={onClick} aria-label={label}>{icon}<span>{label}</span></button>}
 
-function Today({athletes,openAthlete,showAthletes,newAthlete}:{athletes:Athlete[];openAthlete:(a:Athlete)=>void;showAthletes:()=>void;newAthlete:()=>void}){
-  return <><div className="page-heading hero-heading"><div><span>DOMINGO · 28 SEPTIEMBRE 2026</span><h1>Buenas tardes, Nahum.</h1><p>Este es el pulso clínico y deportivo de hoy.</p></div><button className="primary-action" onClick={newAthlete}><Plus/>Nuevo atleta</button></div>
-    <section className="overview-grid"><Metric icon={<CalendarDays/>} label="Citas de hoy" value="6" detail="2 reevaluaciones" tone="mint"/><Metric icon={<CircleAlert/>} label="Requieren atención" value="3" detail="Respuesta adversa o pendiente" tone="orange"/><Metric icon={<Target/>} label="Decisiones abiertas" value="4" detail="Retorno y progresión" tone="blue"/><Metric icon={<UsersRound/>} label="Atletas activos" value={String(athletes.length)} detail="4 episodios en curso" tone="violet"/></section>
-    <section className="today-layout">
-      <article className="surface schedule-panel"><div className="section-head"><div><span>AGENDA CLÍNICA</span><h2>Próximas sesiones</h2></div><button className="text-action" onClick={showAthletes}>Ver atletas <ArrowRight/></button></div><div className="schedule-list">{[athletes[0],athletes[1],athletes[2]].map((a,i)=><div className="schedule-row" key={a.id}><time>{["16:30","09:00","11:30"][i]}</time><span className="row-avatar">{a.initials}</span><div><strong>{a.name}</strong><small>{i===0?"Reevaluación · Rodilla":i===1?"Fuerza y sprint · Isquios":"Seguimiento · Hombro"}</small></div><span className={`status-pill ${i===0?"mint":""}`}>{i===0?"Hoy":"Próxima"}</span><button onClick={()=>openAthlete(a)}>Abrir <ChevronRight/></button></div>)}</div></article>
-      <article className="surface attention-panel"><div className="section-head"><div><span>PRIORIDAD CLÍNICA</span><h2>Requieren atención</h2></div></div><button className="attention-item" onClick={()=>openAthlete(athletes[0])}><i className="orange"/><span><strong>Respuesta a 24 h pendiente</strong><small>Mariana López · Carrera 16 min</small></span><ChevronRight/></button><button className="attention-item" onClick={()=>openAthlete(athletes[1])}><i className="blue"/><span><strong>Reevaluación programada</strong><small>Diego Carrillo · CMJ y sprint</small></span><ChevronRight/></button><button className="attention-item" onClick={()=>openAthlete(athletes[3])}><i className="violet"/><span><strong>Completar ingreso</strong><small>Jorge Méndez · Consentimiento</small></span><ChevronRight/></button></article>
-      <article className="surface readiness-panel"><div className="section-head"><div><span>RETORNO AL DEPORTE</span><h2>Estado de decisiones</h2></div></div><div className="readiness-chart"><div className="readiness-ring"><strong>4</strong><span>abiertas</span></div><div><span><i className="mint"/>2 listas para revisión</span><span><i className="orange"/>1 con criterio pendiente</span><span><i className="slate"/>1 sin datos suficientes</span></div></div></article>
+function Today({athletes,openAthlete,showAthletes,newAthlete}:{athletes:Athlete[];openAthlete:(a:Athlete,target?:Page)=>void;showAthletes:()=>void;newAthlete:()=>void}){
+  const agenda=[
+    {athlete:athletes[0],time:"16:30",kind:"Reevaluación",detail:"Rodilla · CMJ + carrera",target:"assessment" as Page},
+    {athlete:athletes[1],time:"Mañana 09:00",kind:"Sesión de campo",detail:"Isquios · fuerza + sprint",target:"treatment" as Page},
+    {athlete:athletes[2],time:"30 sep 11:30",kind:"Seguimiento",detail:"Hombro · tolerancia de carga",target:"treatment" as Page},
+  ];
+  const work=[
+    {athlete:athletes[0],priority:"AHORA",tone:"urgent",task:"Registrar respuesta a 24 horas",reason:"La última exposición de carrera no puede cerrarse sin comprobar tolerancia.",action:"Registrar",target:"treatment" as Page},
+    {athlete:athletes[1],priority:"HOY",tone:"review",task:"Preparar batería de reevaluación",reason:"CMJ, sprint 20 m y Nordic pendientes antes de progresar carga.",action:"Evaluar",target:"assessment" as Page},
+    {athlete:athletes[3],priority:"ANTES DE CITA",tone:"admin",task:"Completar consentimiento e ingreso",reason:"El episodio todavía no tiene cribado ni meta funcional firmada.",action:"Completar",target:"clinical" as Page},
+  ];
+  return <><div className="page-heading hero-heading"><div><span>DOMINGO · 28 SEPTIEMBRE 2026</span><h1>Centro de operaciones</h1><p>Lo que requiere una decisión clínica, en el orden correcto.</p></div><button className="primary-action" onClick={newAthlete}><Plus/>Nuevo atleta</button></div>
+    <section className="today-command">
+      <article className="surface next-decision"><div className="command-label"><span>SIGUIENTE DECISIÓN · 16:30</span><em>Reevaluación</em></div><div className="decision-athlete"><span className="row-avatar large">{athletes[0].initials}</span><div><strong>{athletes[0].name}</strong><small>{athletes[0].episode} · {athletes[0].region}</small></div></div><h2>¿Puede progresar a 20 minutos de carrera continua?</h2><p>La decisión necesita cerrar tres evidencias antes de aumentar exposición.</p><div className="evidence-checklist"><span><Check/>Dolor actual ≤ 3/10</span><span className="pending"><CircleAlert/>Respuesta a 24 h</span><span className="pending"><Activity/>Control unilateral bajo fatiga</span></div><button className="primary-action" onClick={()=>openAthlete(athletes[0],"assessment")}><Activity/>Abrir reevaluación</button></article>
+      <article className="surface agenda-rail"><div className="section-head"><div><span>AGENDA CLÍNICA</span><h2>Próximas intervenciones</h2></div><button className="text-action" onClick={showAthletes}>Todos <ArrowRight/></button></div><div className="agenda-stream">{agenda.map((x,i)=><button key={x.athlete.id} onClick={()=>openAthlete(x.athlete,x.target)}><time>{x.time}</time><i className={i===0?"active":""}/><span><strong>{x.athlete.name}</strong><small>{x.kind} · {x.detail}</small></span><ChevronRight/></button>)}</div></article>
+    </section>
+    <section className="today-operations">
+      <article className="surface clinical-worklist"><div className="section-head"><div><span>COLA CLÍNICA PRIORIZADA</span><h2>Trabajo que desbloquea decisiones</h2></div><span className="queue-count">3 pendientes</span></div>{work.map(x=><div className="work-row" key={x.task}><span className={`work-priority ${x.tone}`}>{x.priority}</span><div className="work-person"><span className="row-avatar">{x.athlete.initials}</span><span><strong>{x.athlete.name}</strong><small>{x.athlete.episode}</small></span></div><div className="work-task"><strong>{x.task}</strong><small>{x.reason}</small></div><button onClick={()=>openAthlete(x.athlete,x.target)}>{x.action}<ChevronRight/></button></div>)}</article>
+      <article className="surface decision-inbox"><div className="section-head"><div><span>RETORNO AL DEPORTE</span><h2>Decisiones por firmar</h2></div></div><button onClick={()=>openAthlete(athletes[0],"return")}><span><strong>Mariana López</strong><small>Carrera · participación</small></span><em>6/8</em><div><b>Carrera 20 min</b><small>Brecha principal</small></div><ChevronRight/></button><button onClick={()=>openAthlete(athletes[1],"return")}><span><strong>Diego Carrillo</strong><small>Fútbol · deporte</small></span><em>5/8</em><div><b>Sprint máximo</b><small>Brecha principal</small></div><ChevronRight/></button><footer><ShieldCheck/><span>El profesional interpreta y firma; la plataforma organiza la evidencia.</span></footer></article>
     </section></>
 }
-
-function Metric({icon,label,value,detail,tone}:{icon:React.ReactNode;label:string;value:string;detail:string;tone:string}){return <article className="overview-card"><div className={`metric-icon ${tone}`}>{icon}</div><div><span>{label}</span><strong>{value}</strong><small>{detail}</small></div></article>}
 
 function Athletes({athletes,openAthlete,newAthlete}:{athletes:Athlete[];openAthlete:(a:Athlete)=>void;newAthlete:()=>void}){
   const [filter,setFilter]=useState("");const visible=athletes.filter(a=>`${a.name} ${a.sport} ${a.episode}`.toLowerCase().includes(filter.toLowerCase()));
